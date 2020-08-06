@@ -1,0 +1,14 @@
+fairml (0.2)
+
+  * improve argument sanitization.
+  * improve nclm() numeric stability by standardizing variables.
+  * added data sets used in Komiyama et al. (2018).
+
+fairml (0.1)
+
+  * initial release.
+  * preliminary implementation of the regression model with fairness
+     constraints from Komiyama et al. (2018), without kernel regularization.
+  * implemented print(), summary(), coef(), fitted(), residuals(), sigma(),
+     nobs(), sigma(), predict() and all.equal() methods.
+  * added some profile plots in fairness.profile.plots().

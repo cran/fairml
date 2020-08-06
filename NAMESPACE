@@ -1,0 +1,27 @@
+export(
+  "nclm", "fairness.profile.plot"
+)
+
+importFrom("methods", "is")
+importFrom("stats", "var", "sd", "cov", "cor", "coef", "residuals", "fitted",
+  "sigma", "deviance", "nobs", "lm", "model.frame", "model.matrix", "formula",
+  "predict")
+importFrom("optiSolve", "cop", "solvecop", "linfun", "quadcon", "validate")
+importFrom("grDevices", "dev.cur")
+importFrom("graphics", "plot.new", "strwidth")
+
+S3method(summary, "nclm")
+S3method(deviance, "nclm")
+S3method(predict, "nclm")
+
+S3method(print, "fair.model")
+S3method(summary, "fair.model")
+S3method(all.equal, "fair.model")
+S3method(coef, "fair.model")
+S3method(fitted, "fair.model")
+S3method(residuals, "fair.model")
+S3method(sigma, "fair.model")
+S3method(nobs, "fair.model")
+S3method(predict, "fair.model")
+
+S3method(print, "summary.fair.model")
