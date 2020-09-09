@@ -22,6 +22,28 @@ is.non.negative.integer = function(x) {
 
 }#IS.NON.NEGATIVE.INTEGER
 
+# is x a positive number?
+is.positive = function(x) {
+
+  is.numeric(x) && (length(x) == 1) && is.finite(x) && (x > 0)
+
+}#IS.POSITIVE
+
+# is x a positive integer?
+is.positive.integer = function(x) {
+
+  is.numeric(x) && (length(x) == 1) && is.finite(x) && (x > 0) &&
+    ((x %/% 1) == x)
+
+}#IS.POSITIVE.INTEGER
+
+# is x a vector of positive numbers?
+is.positive.vector = function(x) {
+
+  is.numeric(x) && all(is.finite(x)) && all(x > 0)
+
+}#IS.POSITIVE.VECTOR
+
 # is x a probability or a proportion?
 is.probability = function(x) {
 

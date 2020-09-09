@@ -20,9 +20,9 @@ predict.nclm = function(object, new.predictors, new.sensitive, ...) {
   check.unused.args(list(...), character(0))
 
   # check the predictors and the sensitive attributes.
-  new.predictors = check.data(new.predictors, varletter = "X")
+  new.predictors = check.data(new.predictors, min.nobs = 1, varletter = "X")
   new.sensitive = check.data(new.sensitive, nobs = nrow(new.predictors),
-                             varletter = "S")
+                             min.nobs = 1, varletter = "S")
   # check that both have the same structure as the data used to train the model.
   new.predictors = check.data.vs.info(new.predictors, object$data$predictors)
   new.sensitive = check.data.vs.info(new.sensitive, object$data$sensitive)

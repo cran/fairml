@@ -1,7 +1,8 @@
 
 # plot a profile plot of the coefficients.
 fairness.profile.plot = function(response, predictors, sensitive, epsilon,
-    legend = FALSE, type = "coefficients", ...) {
+    legend = FALSE, type = "coefficients", model = "nclm",
+    model.args = list()) {
 
   valid.types = c("coefficients", "variance")
 
@@ -12,26 +13,29 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
   response = check.response(response)
   predictors = check.data(predictors, nobs = length(response), varletter = "X")
   sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
+  epsilon = check.epsilon(epsilon, scalar = FALSE)
 
-  if (missing(epsilon))
-    epsilon = seq(from = 0.00, to = 1, by = 0.02)
-  else if (!is.probability.vector(epsilon))
-      stop("'epsilon' should be a vector of numbers between 0 and 1.")
+  # check the type and legend of the plot.
+  check.logical(legend)
+  check.label(type, valid.types, "type")
 
-  if (missing(legend))
-    legend = FALSE
-  else
-    check.logical(legend)
-
-  if (missing(type))
-    type = "coefficients"
-  else if (!is.string(type) || !(type %in% valid.types))
-    stop("'type' should be one of ", q(valid.types), ".")
+  # check the model to be fit and its optional arguments.
+  check.label(model, fair.models, "model")
+  # remove optional arguments that do not belong after warning.
+  check.unused.args(model.args, fair.models.extra.args[[model]])
+  model.args =
+    model.args[names(model.args) %in% fair.models.extra.args[[model]]]
 
   # fit the model for each epsilon.
-  models = lapply(epsilon, function(e) {
-                    nclm(response, predictors, sensitive, epsilon = e, ...)
-           })
+  fit = function(e) {
+    do.call(model, c(list(response = response,
+                          predictors = predictors,
+                          sensitive = sensitive,
+                          epsilon = e),
+                     model.args))
+  }
+
+  models = lapply(epsilon, fit)
 
   if (type == "coefficients") {
 
@@ -69,7 +73,7 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
     }#ELSE
 
     # disable clipping to be able to draw the axis.
-    lattice::trellis.par.set("clip", list(panel = "off"))
+    suppressWarnings(lattice::trellis.par.set("clip", list(panel = "off")))
 
     # plot and return (relying on autoprint to display the plot).
     lattice::xyplot(ff, data = coefs,

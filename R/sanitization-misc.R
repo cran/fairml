@@ -33,3 +33,16 @@ q = function(strings) {
   paste(sQuote(strings, FALSE), collapse = ", ")
 
 }#Q
+
+# check labels for various arguments.
+check.label = function(arg, choices, argname) {
+
+  if (missing(arg) || !is.string(arg))
+    stop("the ", argname, " must be a single character string.")
+
+  if (arg %in% choices)
+    return(invisible(NULL))
+
+  stop("valid ", argname, "(s) are ", q(choices), ".")
+
+}#CHECK.LABEL

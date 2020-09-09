@@ -9,7 +9,7 @@
 }
 \usage{
 fairness.profile.plot(response, predictors, sensitive, epsilon,
-  legend = FALSE, type = "coefficients", ...)
+  legend = FALSE, type = "coefficients", model = "nclm", model.args = list())
 }
 \arguments{
   \item{response}{a numeric vector, the response variable.}
@@ -23,7 +23,9 @@ fairness.profile.plot(response, predictors, sensitive, epsilon,
   \item{legend}{a logical value, whether to add a legend to the plot.}
   \item{type}{a character string, either \code{"coefficients"} (the default) or
     \code{"variance"}.}
-  \item{\dots}{additional arguments passed to \code{nclm()}.}
+  \item{model}{a character string, the label of the model. Currently only
+    \code{"nclm"} is available.}
+  \item{model.args}{additional arguments passed to the model.}
 }
 \details{
 
@@ -56,7 +58,6 @@ fairness.profile.plot(response, predictors, sensitive, epsilon,
 }
 \examples{
 data(vur.test)
-names(dev.cur())
 fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
   sensitive = vur.test$S, type = "coefficients", legend = TRUE)
 fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
@@ -64,3 +65,4 @@ fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
 }
 \author{Marco Scutari}
 \keyword{plots}
+\keyword{model selection}

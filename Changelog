@@ -1,7 +1,15 @@
+fairml (0.3)
+
+  * support custom covariance matrix estimators in nclm(); Komiyama et al.
+     (2018) plugged various kernel estimators in the model estimation.
+  * added an optional argument to regularize nclm() with a ridge penalty.
+  * implemented cross-validation in fairml.cv() and an associated loss() 
+     function.
+
 fairml (0.2)
 
-  * improve argument sanitization.
-  * improve nclm() numeric stability by standardizing variables.
+  * improved argument sanitization.
+  * improved nclm() numeric stability by standardizing variables.
   * added data sets used in Komiyama et al. (2018).
 
 fairml (0.1)

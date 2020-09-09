@@ -7,7 +7,9 @@ all.equal.fair.model = function(target, current, ...) {
   if (!is(current, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
-  check.unused.args(list(...), character(0))
+  # do not warn about these two arguments, they are set when all.equal() methods
+  # call each other in a cascade and thus they result in pointless warnings.
+  check.unused.args(list(...), c("check.attributes", "use.names"))
 
   differences = character(0)
 

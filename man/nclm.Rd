@@ -8,7 +8,7 @@
 
 }
 \usage{
-nclm(response, predictors, sensitive, epsilon)
+nclm(response, predictors, sensitive, epsilon, covfun, lambda)
 }
 \arguments{
   \item{response}{a numeric vector, the response variable.}
@@ -18,6 +18,10 @@ nclm(response, predictors, sensitive, epsilon)
     factor columns; the sensitive attributes.}
   \item{epsilon}{a positive number in [0, 1], the proportion of the explained
     variance that can be attributed to \code{S}.}
+  \item{covfun}{a function computing covariance matrices. It defaults to the
+    \code{cov()} function from the \pkg{stats} package.}
+  \item{lambda}{a non-negative number, a ridge-regression penalty coefficient.
+    It defaults to zero.}
 }
 \details{
 
@@ -38,9 +42,14 @@ nclm(response, predictors, sensitive, epsilon)
   Both \code{sensitive} and \code{predictors} are standardized internally before
   estimating the regression coefficients, which are then rescaled back to match
   the original scales of the variables. \code{response} is only standardized if
-  it has a variance smaller than \code{1}, as that seems to improve the stability
-  of the solutions provided by the optimizer (as far as the data included in
-  \pkg{fairml} are concerned).
+  it has a variance smaller than \code{1}, as that seems to improve the
+  stability of the solutions provided by the optimizer (as far as the data
+  included in \pkg{fairml} are concerned).
+
+  The \code{covfun} argument makes it possible to specify a custom function to
+  compute the covariance matrices used in the constrained optimization. Some
+  examples are the kernel estimators described in Komiyama et al. (2018) and
+  the shrinkage estimators in the \pkg{corpcor} package.
 
 }
 \value{

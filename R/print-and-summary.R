@@ -52,12 +52,15 @@ summary.nclm = function(object, ...) {
   r2 = 1 - var(residuals(object)) / var(fitted(object) + residuals(object))
 
   performance = list(
+    "Ridge penalty" = object$main$lambda,
+    "Custom covariance matrix" = !identical(object$main$covfun, cov),
     "Residual standard error" = sigma(object),
     "Multiple R-squared" = r2,
     c("Komiyama's R-squared" = value, "with bound" = object$main$bound)
   )
 
-  structure(list(model = object, banner = "Method: Komiyama et al. (2018)",
+  structure(list(model = object,
+                 banner = paste("Method:", fair.models.labels["nclm"]),
                  performance = performance),
     class = "summary.fair.model")
 
@@ -99,3 +102,54 @@ print.summary.fair.model = function(x, digits, ...) {
   }#FOR
 
 }#PRINT.SUMMARY.FAIR.MODEL
+
+# print method for a single cross-validation run.
+print.fair.kcv = function(x, print.loss = TRUE, ...) {
+
+  a = attributes(x)
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  cat("\n ", a$method,  "cross-validation for fair models\n\n")
+
+  wcat("  model:                                ", fair.models.labels[a$model])
+
+  if (a$method == "k-fold") {
+
+    wcat("  number of folds:                      ", length(x))
+
+  }#THEN
+  else if (a$method == "hold-out") {
+
+    wcat("  number of splits:                     ", length(x))
+    wcat("  size of the test subset:              ", length(x[[1]]$test))
+
+  }#ELSE
+
+  if (print.loss) {
+
+    wcat("  expected loss:                        ", format(a$mean.loss))
+    cat("\n")
+
+  }#THEN
+
+  invisible(x)
+
+}#PRINT.FAIR.KCV
+
+# print method for a list containing multiple cross-validation runs.
+print.fair.kcv.list = function(x, ...) {
+
+  losses = sapply(x, function(x) attr(x, "mean.loss"))
+
+  print.fair.kcv(x[[1]], print.loss = FALSE)
+  wcat("  number of runs:                       ", length(x))
+  wcat("  average loss over the runs:           ", format(mean(losses)))
+  wcat("  standard deviation of the loss:       ", format(sd(losses)))
+  cat("\n")
+
+  invisible(x)
+
+}#PRINT.FAIR.KCV.LIST
+

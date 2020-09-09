@@ -1,6 +1,6 @@
 
 # check the response variable.
-check.response = function(response) {
+check.response = function(response, min.nobs = 2) {
 
   if (missing(response) || !is.real.vector(response))
     stop("'response' should be a numeric vector.")
@@ -8,16 +8,21 @@ check.response = function(response) {
   # make sure the response is a vector.
   response = as.vector(response)
 
+  # check the minimum sample size.
+  if (length(response) < min.nobs)
+    stop("'response' should contain at least ", min.nobs, " observations.")
+
   # do not allow a zero-variance response if later we try to standardize it.
-  if (var(response) < sqrt(.Machine$double.eps))
-    stop("'response' has variance zero, it cannot be standardized.")
+  if (min.nobs > 1)
+    if (var(response) < sqrt(.Machine$double.eps))
+      stop("'response' has variance zero, it cannot be standardized.")
 
   return(response)
 
 }#CHECK.RESPONSE
 
 # check data in tabular form.
-check.data = function(data, nobs, varletter) {
+check.data = function(data, nobs, min.nobs = 2, varletter) {
 
   argname = as.character(match.call()[[2]])
 
@@ -34,6 +39,10 @@ check.data = function(data, nobs, varletter) {
   if (anyNA(data))
     stop(q(argname), " contains missing values.")
 
+  # check the minimum sample size.
+  if (nrow(data) < min.nobs)
+    stop(q(argname), " should contain at least ", min.nobs, " observations.")
+
   if (is.matrix(data)) {
 
     if (!is.numeric(data))
@@ -43,11 +52,15 @@ check.data = function(data, nobs, varletter) {
     if (is.null(colnames(data)))
       colnames(data) = paste0(varletter, seq(ncol(data)))
 
-    # do not allow variables that are effectively constants.
-    singular = (apply(data, 2, var) < sqrt(.Machine$double.eps))
-    if (any(singular))
-      stop("variables ", q(colnames(data)[singular]),
-           " in ", q(argname), " have variance zero.")
+    if (min.nobs > 1) {
+
+      # do not allow variables that are effectively constants.
+      singular = (apply(data, 2, var) < sqrt(.Machine$double.eps))
+      if (any(singular))
+        stop("variables ", q(colnames(data)[singular]),
+             " in ", q(argname), " have variance zero.")
+
+    }#THEN
 
   }#THEN
   else if (is.data.frame(data)) {
@@ -59,24 +72,28 @@ check.data = function(data, nobs, varletter) {
       stop("variables ", q(names(which(invalid))),
            " in ", q(argname), " should be numeric or factor(s).")
 
-    # do not allow variables that are effectively constants.
-    is.numvar = sapply(data, is.numeric)
-    numeric.vars = data[, is.numvar, drop = FALSE]
-    singular = (sapply(numeric.vars, var) < sqrt(.Machine$double.eps))
-    if (any(singular))
-      stop("variables ", q(names(which(singular))),
-           " in ", q(argname), " have variance zero.")
-
-    # do not allow factors with a single level, lm() breaks down trying to
-    # create contrasts.
     isf = names(which(sapply(data, is.factor)))
     for (f in isf)
       data[, f] = droplevels(data[, f])
 
-    nlvls = sapply(data[, isf, drop = FALSE], nlevels)
-    if (any(nlvls == 1))
-      stop("variables ", q(names(which(nlvls == 1))),
-           " in ", q(argname), " only have a single level (each).")
+    if (min.nobs > 1) {
+
+      # do not allow variables that are effectively constants.
+      is.numvar = sapply(data, is.numeric)
+      numeric.vars = data[, is.numvar, drop = FALSE]
+      singular = (sapply(numeric.vars, var) < sqrt(.Machine$double.eps))
+      if (any(singular))
+        stop("variables ", q(names(which(singular))),
+             " in ", q(argname), " have variance zero.")
+
+      # do not allow factors with a single level, lm() breaks down trying to
+      # create contrasts.
+      nlvls = sapply(data[, isf, drop = FALSE], nlevels)
+      if (any(nlvls == 1))
+        stop("variables ", q(names(which(nlvls == 1))),
+             " in ", q(argname), " only have a single level (each).")
+
+    }#THEN
 
   }#THEN
 
