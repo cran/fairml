@@ -18,7 +18,9 @@
   \itemize{
 
     \item \code{nclm()}: the non-convex formulation of fair linear regression
-      from Komiyama et al. (2018).
+      model from Komiyama et al. (2018).
+
+    \item \code{frrm()}: the fair ridge regression model.
 
   }
 

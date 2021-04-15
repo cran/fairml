@@ -8,7 +8,7 @@
 
 }
 \usage{
-nclm(response, predictors, sensitive, epsilon, covfun, lambda)
+nclm(response, predictors, sensitive, unfairness, covfun, lambda)
 }
 \arguments{
   \item{response}{a numeric vector, the response variable.}
@@ -16,14 +16,16 @@ nclm(response, predictors, sensitive, epsilon, covfun, lambda)
     factor columns; the predictors.}
   \item{sensitive}{a numeric matrix or a data frame containing numeric and
     factor columns; the sensitive attributes.}
-  \item{epsilon}{a positive number in [0, 1], the proportion of the explained
-    variance that can be attributed to \code{S}.}
+  \item{unfairness}{a positive number in [0, 1], the proportion of the explained
+    variance that can be attributed to the sensitive attributes.}
   \item{covfun}{a function computing covariance matrices. It defaults to the
     \code{cov()} function from the \pkg{stats} package.}
   \item{lambda}{a non-negative number, a ridge-regression penalty coefficient.
     It defaults to zero.}
 }
 \details{
+
+  \code{nclm()} defines fairness as statistical parity.
 
   The algorithm proposed by Komiyama et al. (2018) works like this:
 
@@ -64,5 +66,6 @@ nclm(response, predictors, sensitive, epsilon, covfun, lambda)
     Conference on Machine Learning (ICML), PMLR \strong{80}:2737--2746.
 
 }
+\seealso{\link{frrm}}
 \author{Marco Scutari}
 \keyword{regression}

@@ -88,11 +88,15 @@ data(compas)
 # convert the response back to a numeric variable.
 compas$two_year_recid = as.numeric(compas$two_year_recid) - 1
 
-m = nclm(response = compas[, "two_year_recid"],
-      sensitive = compas[, c("sex", "race")],
-      predictors = compas[, setdiff(names(compas), c("two_year_recid", "sex", "race"))],
-      epsilon = 0.05)
+# short-hand variable names.
+r = compas[, "two_year_recid"]
+s = compas[, c("sex", "race")]
+p = compas[, setdiff(names(compas), c("two_year_recid", "sex", "race"))]
 
+m = nclm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
+summary(m)
+
+m = frrm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
 summary(m)
 }
 \keyword{datasets}

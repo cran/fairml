@@ -66,6 +66,30 @@ summary.nclm = function(object, ...) {
 
 }#SUMMARY.NCLM
 
+# create a summary for the fair ridge regression model.
+summary.frrm = function(object, ...) {
+
+  if (!is(object, "frrm"))
+    stop("'object' must be an 'frrm' object.")
+
+  check.unused.args(list(...), character(0))
+
+  value = object$main$r.squared.S /
+            (object$main$r.squared.S + object$main$r.squared.U)
+  r2 = 1 - var(residuals(object)) / var(fitted(object) + residuals(object))
+
+  performance = list(
+    "Residual standard error" = sigma(object),
+    "Multiple R-squared" = r2,
+    c("Komiyama's R-squared" = value, "with bound" = object$main$bound)
+  )
+
+  structure(list(model = object, banner = "Method: Fair Ridge Regression",
+                 performance = performance),
+    class = "summary.fair.model")
+
+}#SUMMARY.FRRM
+
 # print the summary of a fair model.
 print.summary.fair.model = function(x, digits, ...) {
 

@@ -47,7 +47,7 @@ data(communities.and.crime)
 }
 \references{
 
-  UCI Machine Learning Repository:
+  UCI Machine Learning Repository: \cr
   http://archive.ics.uci.edu/ml/datasets/communities+and+crime
 
 }
@@ -60,8 +60,10 @@ r = cc[, "ViolentCrimesPerPop"]
 s = cc[, c("racepctblack", "PctForeignBorn")]
 p = cc[, setdiff(names(cc), c("ViolentCrimesPerPop", names(s)))]
 
-m = nclm(response = r, sensitive = s, predictors = p, epsilon = 0.05)
+m = nclm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
+summary(m)
 
+m = frrm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
 summary(m)
 }
 \keyword{datasets}

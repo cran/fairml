@@ -1,6 +1,8 @@
 \name{fairml.cv}
 \alias{fairml.cv}
-\alias{loss}
+\alias{cv.loss}
+\alias{cv.unfairness}
+\alias{cv.folds}
 \title{Cross-Validation for Fair Models}
 \description{
 
@@ -9,9 +11,11 @@
 }
 \usage{
 fairml.cv(response, predictors, sensitive, method = "k-fold", ...,
-  epsilon, model, model.args = list())
+  unfairness, model, model.args = list())
 
-loss(x)
+cv.loss(x)
+cv.unfairness(x)
+cv.folds(x)
 }
 \arguments{
   \item{response}{a numeric vector, the response variable.}
@@ -22,8 +26,8 @@ loss(x)
   \item{method}{a character string, either \code{k-fold}, \code{custom-folds}
     or \code{hold-out}. See below for details.}
   \item{\dots}{additional arguments for the cross-validation \code{method}.}
-  \item{epsilon}{a positive number in [0, 1], the proportion of the explained
-    variance that can be attributed to \code{S}.}
+  \item{unfairness}{a positive number in [0, 1], the proportion of the explained
+    variance that can be attributed to the sensitive attributes.}
   \item{model}{a character string, the label of the model. Currently only
     \code{"nclm"} is available.}
   \item{model.args}{additional arguments passed to the model.}
@@ -88,16 +92,31 @@ loss(x)
   \code{runs} is at least 2, an object of class \code{fair.kcv} if \code{runs}
   is equal to 1.
 
-  \code{loss} returns a numeric vectors containing the values of the loss
+  \code{cv.loss()} returns a numeric vectors containing the values of the loss
   function computed for each run of cross-validation.
+
+  \code{cv.unfairness()} returns a numeric vectors containing the values of the
+  unfairness criterion computed on the validation folds for each run of
+  cross-validation.
+
+  \code{cv.folds()} returns a list containing the indexes of the observations in
+  each of the cross-validation folds. In the cakse of k-fold cross-validation,
+  if \code{runs} is larger than \code{1}, each element of the list is itself a
+  list with the indexes for the observations in each fold in each run.
 
 }
 \examples{
 kcv = fairml.cv(response = vur.test$y, predictors = vur.test$X,
-        sensitive = vur.test$S, epsilon = 0.10, model = "nclm",
+        sensitive = vur.test$S, unfairness = 0.10, model = "nclm",
         method = "k-fold", k = 10, runs = 10)
 kcv
-loss(kcv)
+cv.loss(kcv)
+cv.unfairness(kcv)
+
+# run a second cross-validation with the same folds.
+fairml.cv(response = vur.test$y, predictors = vur.test$X,
+        sensitive = vur.test$S, unfairness = 0.10, model = "nclm",
+        method = "custom-folds", folds = cv.folds(kcv))
 }
 \author{Marco Scutari}
 \keyword{regression}

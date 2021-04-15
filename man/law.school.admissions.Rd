@@ -72,12 +72,14 @@ data(law.school.admissions)
 
 # short-hand variable names.
 ll = law.school.admissions
+r = ll[, "ugpa"]
+s = ll[, c("age", "race1")]
+p = ll[, setdiff(names(ll), c("ugpa", "age", "race1"))]
 
-m = nclm(response = ll[, "ugpa"],
-      sensitive = ll[, c("age", "race1")],
-      predictors = ll[, setdiff(names(ll), c("ugpa", "age", "race1"))],
-      epsilon = 0.05)
+m = nclm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
+summary(m)
 
+m = frrm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
 summary(m)
 }
 \keyword{datasets}

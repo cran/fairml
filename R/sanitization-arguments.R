@@ -43,23 +43,23 @@ check.covariance.matrix = function(covmat, nvars, what) {
 }#CHECK.COVARIANCE.MATRIX
 
 # check the proportion of variance explained by sensitive attributes.
-check.epsilon = function(epsilon, scalar = TRUE) {
+check.fairness.level = function(unfairness, scalar = TRUE) {
 
   if (scalar) {
 
-    if (missing(epsilon) || !is.probability(epsilon))
-      stop("'epsilon' should be a single number between 0 and 1.")
+    if (missing(unfairness) || !is.probability(unfairness))
+      stop("'unfairness' should be a single number between 0 and 1.")
 
   }#THEN
   else {
 
-    if (missing(epsilon))
-      epsilon = seq(from = 0.00, to = 1, by = 0.02)
-    else if (!is.probability.vector(epsilon))
-      stop("'epsilon' should be a vector of numbers between 0 and 1.")
+    if (missing(unfairness))
+      unfairness = seq(from = 0.00, to = 1, by = 0.02)
+    else if (!is.probability.vector(unfairness))
+      stop("'unfairness' should be a vector of numbers between 0 and 1.")
 
   }#ELSE
 
-  return(epsilon)
+  return(unfairness)
 
-}#CHECK.EPSILON
+}#CHECK.FAIRNESS.LEVEL

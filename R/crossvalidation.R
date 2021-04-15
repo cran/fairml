@@ -1,16 +1,16 @@
 
 # cross-validating fair models.
 fairml.cv = function(response, predictors, sensitive, method = "k-fold", ...,
-                     epsilon, model, model.args = list()) {
+                     unfairness, model, model.args = list()) {
 
   # check arguments common to all models.
   response = check.response(response)
   n = length(response)
   predictors = check.data(predictors, nobs = length(response), varletter = "X")
   sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
-  check.epsilon(epsilon)
+  check.fairness.level(unfairness)
 
-  # check the model to be fit and its optional arguments.
+  # check the model to be fitted.
   check.label(model, fair.models, "model")
   # remove optional arguments that do not belong after warning.
   check.unused.args(model.args, fair.models.extra.args[[model]])
@@ -54,16 +54,19 @@ fairml.cv = function(response, predictors, sensitive, method = "k-fold", ...,
 
     kcv = lapply(kcv, compute.loss.from.split, response = response,
             predictors = predictors, sensitive = sensitive,
-            epsilon = epsilon, model = model, model.args = model.args)
+            unfairness = unfairness, model = model, model.args = model.args)
 
     # compute the aggregate loss.
     fold.losses = sapply(kcv, `[[`, "loss")
     mean.loss = weighted.mean(fold.losses, kcv.length)
+    # compute the aggregate fairness.
+    fold.unfairness = sapply(kcv, `[[`, "unfairness")
+    mean.unfairness = weighted.mean(fold.unfairness, kcv.length)
     # reset the names of the elements of the return value.
     names(kcv) = NULL
     # add some useful attributes to the renurn value.
     kcv = structure(kcv, class = "fair.kcv", mean.loss = mean.loss,
-            method = method, model = model)
+            mean.unfairness = mean.unfairness, method = method, model = model)
 
     result[[r]] = kcv
 
@@ -79,7 +82,7 @@ fairml.cv = function(response, predictors, sensitive, method = "k-fold", ...,
 }#FAIRML.CV
 
 compute.loss.from.split = function(test, response, predictors, sensitive,
-    epsilon, model, model.args) {
+    unfairness, model, model.args) {
 
   # create the training and test sets.
   train.response = response[-test]
@@ -93,29 +96,74 @@ compute.loss.from.split = function(test, response, predictors, sensitive,
   fitted = do.call(model, c(list(response = train.response,
                                  predictors = train.predictors,
                                  sensitive = train.sensitive,
-                                 epsilon = epsilon),
+                                 unfairness = unfairness),
                             model.args))
 
   # compute the loss function on the test set.
-  predicted = predict(fitted, new.predictors = test.predictors,
-                new.sensitive = test.sensitive)
-  obs.loss = mean((test.response - predicted)^2)
+  predicted.best = predict(fitted, new.predictors = test.predictors,
+                     new.sensitive = test.sensitive)
+  obs.loss = mean((test.response - predicted.best)^2)
 
-  return(c(list(test = test, fitted = fitted), loss = obs.loss))
+  # recompute the loss function after neutering the sensitive attributes.
+  is.sensitive = attr(fitted$main$coefficients, "sensitive")
+  fitted$main$coefficients[is.sensitive] = 0
+
+  predicted.fair = predict(fitted, new.predictors = test.predictors,
+                     new.sensitive = test.sensitive)
+  obs.unfairness = 1 - var(predicted.fair) / var(predicted.best)
+
+  return(c(list(test = test, fitted = fitted), loss = obs.loss,
+           unfairness = obs.unfairness))
 
 }#COMPUTE.LOSS.FROM.SPLIT
 
-# extract loss values from fair.kcv and fair.kcv.list objects.
-loss = function(x) {
+# extract predictive loss values from fair.kcv and fair.kcv.list objects.
+cv.loss = function(x) {
 
   if (is(x, "fair.kcv"))
-    losses = attr(x, "mean")
+    values = attr(x, "mean.loss")
   else if (is(x, "fair.kcv.list"))
-    losses = sapply(x, function(x) attr(x, "mean"))
+    values = sapply(x, function(x) attr(x, "mean.loss"))
   else
-    stop("x must be an object of class 'fair.kcv' or 'fair.kcv.list'.")
+    stop("'x' must be an object of class 'fair.kcv' or 'fair.kcv.list'.")
 
-  return(losses)
+  return(values)
 
-}#LOSS
+}#CV.LOSS
 
+
+# extract predictive fairness values from fair.kcv and fair.kcv.list objects.
+cv.unfairness = function(x) {
+
+  if (is(x, "fair.kcv"))
+    values = attr(x, "mean.unfairness")
+  else if (is(x, "fair.kcv.list"))
+    values = sapply(x, function(x) attr(x, "mean.unfairness"))
+  else
+    stop("'x' must be an object of class 'fair.kcv' or 'fair.kcv.list'.")
+
+  return(values)
+
+}#CV.UNFAIRNESS
+
+# extract the indexes of the observations in each fold.
+cv.folds = function(x) {
+
+  if (is(x, "fair.kcv")) {
+
+    folds = lapply(x, `[[`, "test")
+
+  }#THEN
+  else if (is(x, "fair.kcv.list")) {
+
+    folds = vector(length(x), mode = "list")
+    for (i in seq_along(x))
+      folds[[i]] = lapply(x[[i]], `[[`, "test")
+
+  }#THEN
+  else
+    stop("'x' must be an object of class 'fair.kcv' or 'fair.kcv.list'.")
+
+  return(folds)
+
+}#CV.FOLDS

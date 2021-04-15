@@ -87,12 +87,15 @@ data(national.longitudinal.survey)
 nn = national.longitudinal.survey
 # remove alternative response variables.
 nn = nn[, setdiff(names(nn), c("income96", "income06"))]
+# short-hand variable names.
+r = nn[, "income90"]
+s = nn[, c("gender", "age")]
+p = nn[, setdiff(names(nn), c("income90", "gender", "age"))]
 
-m = nclm(response = nn[, "income90"],
-      sensitive = nn[, c("gender", "age")],
-      predictors = nn[, setdiff(names(nn), c("income90", "gender", "age"))],
-      epsilon = 0.05)
+m = nclm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
+summary(m)
 
+m = frrm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
 summary(m)
 }
 \keyword{datasets}

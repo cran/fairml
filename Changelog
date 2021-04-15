@@ -1,3 +1,12 @@
+fairml (0.4)
+
+  * preliminary implementation of the fair ridge regression model.
+  * fairness.profile.plots() no longer plots the intercept of the model.
+  * the "epsilon" argument has been renamed to "unfairness" thorough the
+     package.
+  * loss() has been renamed to cv.loss().
+  * added cv.unfairness() to match cv.loss().
+
 fairml (0.3)
 
   * support custom covariance matrix estimators in nclm(); Komiyama et al.

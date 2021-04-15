@@ -1,6 +1,6 @@
 
 # plot a profile plot of the coefficients.
-fairness.profile.plot = function(response, predictors, sensitive, epsilon,
+fairness.profile.plot = function(response, predictors, sensitive, unfairness,
     legend = FALSE, type = "coefficients", model = "nclm",
     model.args = list()) {
 
@@ -13,41 +13,42 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
   response = check.response(response)
   predictors = check.data(predictors, nobs = length(response), varletter = "X")
   sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
-  epsilon = check.epsilon(epsilon, scalar = FALSE)
+  unfairness = check.fairness.level(unfairness, scalar = FALSE)
 
   # check the type and legend of the plot.
   check.logical(legend)
   check.label(type, valid.types, "type")
 
-  # check the model to be fit and its optional arguments.
+  # check the model to be fitted.
   check.label(model, fair.models, "model")
   # remove optional arguments that do not belong after warning.
   check.unused.args(model.args, fair.models.extra.args[[model]])
   model.args =
     model.args[names(model.args) %in% fair.models.extra.args[[model]]]
 
-  # fit the model for each epsilon.
-  fit = function(e) {
+  # fit the model for each fairness level.
+  fit = function(level) {
     do.call(model, c(list(response = response,
                           predictors = predictors,
                           sensitive = sensitive,
-                          epsilon = e),
+                          unfairness = level),
                      model.args))
   }
 
-  models = lapply(epsilon, fit)
+  models = lapply(unfairness, fit)
 
   if (type == "coefficients") {
 
     # extract the coefficients from the models.
     coefs = lapply(models, coef)
 
-    # arrange the coefficients in a data frame and a formula.
+    # arrange the coefficients (except the intercept, which is not meaningful
+    # in this context) in a data frame and a formula.
     coefs = as.data.frame(do.call(rbind, coefs))
-    names(coefs)[names(coefs) == "(Intercept)"] = "Intercept"
+    coefs = coefs[, names(coefs) != "(Intercept)"]
     lhs = paste0("`", names(coefs), "`", collapse = " + ")
-    coefs[, "epsilon"] = epsilon
-    ff = formula(paste(lhs, "~ epsilon"))
+    coefs[, "unfairness"] = unfairness
+    ff = formula(paste(lhs, "~ unfairness"))
 
     if (legend) {
 
@@ -56,8 +57,8 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
       if (is(try(strwidth(""), silent = TRUE), "try-error"))
         plot.new()
 
-      label.width = strwidth(setdiff(names(coefs), "epsilon"))
-      x.axis.range = range(coefs$epsilon) + c(-1, 1) * 0.05
+      label.width = strwidth(setdiff(names(coefs), "unfairness"))
+      x.axis.range = range(coefs$unfairness) + c(-1, 1) * 0.05
       xlim = c(x.axis.range[1], x.axis.range[2] + label.width)
       x.at = pretty(x.axis.range)
       x.at = x.at[(x.at >= x.axis.range[1]) & (x.at <= x.axis.range[2])]
@@ -66,7 +67,7 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
     else {
 
       label.width = 0
-      xlim = range(coefs$epsilon) + c(-1, 1) * 0.05
+      xlim = range(coefs$unfairness) + c(-1, 1) * 0.05
       x.at = pretty(xlim)
       x.at = x.at[(x.at >= xlim[1]) & (x.at <= xlim[2])]
 
@@ -77,7 +78,7 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
 
     # plot and return (relying on autoprint to display the plot).
     lattice::xyplot(ff, data = coefs,
-      xlab = "epsilon", ylab = "coefficients", type = "l",
+      xlab = "unfairness", ylab = "coefficients", type = "l",
       scales = list(tck = c(1, 0), x = list(at = NULL)), xlim = xlim,
       panel = function(y, x, ...) {
 
@@ -85,7 +86,7 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
         lattice::panel.abline(h = 0, col = "lightgray", lty = "dashed")
         if (legend)
           lattice::panel.text(x = max(x) + 0.01, y = y[x == max(x)], pos = 4,
-                     labels = setdiff(names(coefs), "epsilon"))
+                     labels = setdiff(names(coefs), "unfairness"))
 
         lattice::panel.axis(side = "bottom", at = x.at, outside = TRUE)
 
@@ -104,7 +105,7 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
     vars = lapply(models, `[`, c("r.squared.U", "r.squared.S"))
     vars = lapply(vars, unlist)
     # arrange the proportions in a data frame.
-    vars = data.frame(epsilon = epsilon, do.call(rbind, vars))
+    vars = data.frame(unfairness = unfairness, do.call(rbind, vars))
     # add the R^2 defined in Komiyama et al.
     vars$r.squared = vars$r.squared.S / (vars$r.squared.U + vars$r.squared.S)
 
@@ -125,8 +126,8 @@ fairness.profile.plot = function(response, predictors, sensitive, epsilon,
     }#ELSE
 
     # plot and return (relying on autoprint to display the plot).
-    lattice::xyplot(r.squared.U + r.squared.S + r.squared ~ epsilon,
-      data = vars, xlab = "epsilon", ylab = "explained variance",
+    lattice::xyplot(r.squared.U + r.squared.S + r.squared ~ unfairness,
+      data = vars, xlab = "unfairness", ylab = "explained variance",
       col = col, type = "l", lwd = lwd,
       ylim = c(-0.05, 1.05), scales = list(tck = c(1, 0)), key = key,
       panel = function(y, x, ...) {

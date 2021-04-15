@@ -1,19 +1,44 @@
 # non-convex fair regression from Komiyama et al. (2018).
-nclm = function(response, predictors, sensitive, epsilon, covfun, lambda) {
+nclm = function(response, predictors, sensitive, unfairness, covfun, lambda) {
+
+  fitted = two.stage.regression(model = "nclm", response = response,
+             predictors = predictors, sensitive = sensitive,
+             unfairness = unfairness,
+             covfun = covfun, lambda = lambda)
 
   # save the function call for the print() method.
-  cl = match.call()
+  fitted$main$call = match.call()
 
-  # check the arguments.
+  return(fitted)
+
+}#NCLM
+
+two.stage.regression = function(model, response, predictors, sensitive,
+    unfairness, covfun, lambda) {
+
+  # check the model to be fitted.
+  check.label(model, fair.models, "model")
+  # check the arguments common to all methods.
   response = check.response(response)
   predictors = check.data(predictors, nobs = length(response), varletter = "X")
   sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
-  check.epsilon(epsilon)
-  covfun = check.covariance.function(covfun)
-  if (missing(lambda))
-    lambda = 0
-  else if (!is.non.negative(lambda))
-    stop('lambda should be a non-negative number.')
+  check.fairness.level(unfairness)
+
+  # check method-specific extra arguments.
+  if (model == "nclm") {
+
+    covfun = check.covariance.function(covfun)
+    if (missing(lambda))
+      lambda = 0
+    else if (!is.non.negative(lambda))
+      stop('lambda should be a non-negative number.')
+
+  }#THEN
+  else if (model == "frrm") {
+
+    # nothing to do.
+
+  }#THEN
 
   # save some information on the data, to be used e.g. in predict().
   predictors.info = get.data.info(predictors)
@@ -38,18 +63,28 @@ nclm = function(response, predictors, sensitive, epsilon, covfun, lambda) {
   if (length(duplicate.names) != 0)
     stop("duplicate variable names: ", paste(duplicate.names, collapse = " "), ".")
 
-  if (epsilon == 0) {
+  if (model == "nclm") {
 
-    fit = nclm.zero.sensitive(y = response, S = sensitive, U = U,
-            covfun = covfun, lambda = lambda)
+    if (unfairness == 0) {
+
+      fit = nclm.zero.sensitive(y = response, S = sensitive, U = U,
+              covfun = covfun, lambda = lambda)
+
+    }#THEN
+    else {
+
+      fit = nclm.optiSolve(y = response, S = sensitive, U = U,
+              epsilon = unfairness, covfun = covfun, lambda = lambda)
+
+    }#ELSE
 
   }#THEN
-  else {
+  else if (model == "frrm") {
 
-    fit = nclm.optiSolve(y = response, S = sensitive, U = U, epsilon = epsilon,
-            covfun = covfun, lambda = lambda)
+    fit = frrm.glmnet(y = response, S = sensitive, U = U,
+            unfairness = unfairness)
 
-  }#ELSE
+  }#THEN
 
   # collect all the information about the model and the input data.
   retval = list(
@@ -57,13 +92,14 @@ nclm = function(response, predictors, sensitive, epsilon, covfun, lambda) {
                      coefficients = coef(auxiliary.model),
                      fitted.value = fitted(auxiliary.model),
                      residuals = residuals(auxiliary.model)),
-    main = c(call = cl, fit, bound = epsilon, covfun = covfun, lambda = lambda),
+    main = c(call = NA, fit, bound = unfairness, covfun = covfun,
+             lambda = lambda),
     data = list(predictors = predictors.info, sensitive = sensitive.info)
   )
 
-  return(structure(retval, class = c("nclm", "fair.model")))
+  return(structure(retval, class = c(model, "fair.model")))
 
-}#NCLM
+}#TWO.STAGE.REGRESSION
 
 # particular case, excluding sensitive attributes.
 nclm.zero.sensitive = function(y, S, U, covfun, lambda) {
@@ -118,6 +154,8 @@ nclm.zero.sensitive = function(y, S, U, covfun, lambda) {
   # nclm.optiSolve().
   coefs = c(coefs["(Intercept)"], structure(rep(0, nS), names = colnames(S)),
             coefs[colnames(Us)])
+  # mark coefficients corresponding to sensitive variables.
+  attr(coefs, "sensitive") = names(coefs) %in% colnames(S)
 
   return(list(coefficients = coefs, residuals = resid, fitted.values = fitted,
            r.squared.S = r2.S, r.squared.U = r2.U))
@@ -202,6 +240,8 @@ nclm.optiSolve = function(y, S, U, epsilon, covfun, lambda) {
     as.vector(attr(ys, "scaled:center") -
               attr(Ss, "scaled:center") %*% coefs[colnames(S)] -
               attr(Us, "scaled:center") %*% coefs[colnames(U)])
+  # mark coefficients corresponding to sensitive variables.
+  attr(coefs, "sensitive") = names(coefs) %in% colnames(S)
   # fitted values and residuals.
   fitted.U = U %*% coefs[colnames(U)]
   fitted.S = S %*% coefs[colnames(S)]

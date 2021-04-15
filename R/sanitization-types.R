@@ -72,7 +72,7 @@ check.logical = function(bool) {
 
   if (!is.logical(bool) || is.na(bool) || (length(bool) != 1))
     stop(sprintf("%s must be a logical value (TRUE/FALSE).",
-           deparse(substitute(bool))))
+           q(deparse(substitute(bool)))))
 
 }#CHECK.LOGICAL
 

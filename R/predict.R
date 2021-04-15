@@ -11,13 +11,7 @@ predict.fair.model = function(object, ...) {
 
 }#PREDICT.FAIR.MODELS
 
-# predict new observations for the fair regression in Komiyama et al. (2018).
-predict.nclm = function(object, new.predictors, new.sensitive, ...) {
-
-  if (!is(object, "nclm"))
-    stop("'object' must be an 'nclm' object.")
-
-  check.unused.args(list(...), character(0))
+predict.two.stages = function(object, new.predictors, new.sensitive) {
 
   # check the predictors and the sensitive attributes.
   new.predictors = check.data(new.predictors, min.nobs = 1, varletter = "X")
@@ -52,4 +46,30 @@ predict.nclm = function(object, new.predictors, new.sensitive, ...) {
 
   return(as.vector(newdata %*% coefs))
 
+}#PREDICT.TWO.STAGES
+
+# predict new observations for the fair regression in Komiyama et al. (2018).
+predict.nclm = function(object, new.predictors, new.sensitive, ...) {
+
+  if (!is(object, "nclm"))
+    stop("'object' must be an 'nclm' object.")
+
+  check.unused.args(list(...), character(0))
+
+  predict.two.stages(object = object, new.predictors = new.predictors,
+    new.sensitive = new.sensitive)
+
 }#PREDICT.NCLM
+
+# predict new observations for the fair ridge regression.
+predict.frrm = function(object, new.predictors, new.sensitive, ...) {
+
+  if (!is(object, "frrm"))
+    stop("'object' must be an 'frrm' object.")
+
+  check.unused.args(list(...), character(0))
+
+  predict.two.stages(object = object, new.predictors = new.predictors,
+    new.sensitive = new.sensitive)
+
+}#PREDICT.FRRM

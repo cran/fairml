@@ -10,3 +10,15 @@ deviance.nclm = function(object, ...) {
   return(sum(object$main$residuals^2))
 
 }#DEVIANCE.NCLM
+
+# deviance for the fair ridge regression model.
+deviance.frrm = function(object, ...) {
+
+  if (!is(object, "frrm"))
+    stop("'object' must be an 'frrm' object.")
+
+  check.unused.args(list(...), character(0))
+
+  return(sum(object$main$residuals^2))
+
+}#DEVIANCE.FRRM

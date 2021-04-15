@@ -1,13 +1,15 @@
 
 # fair model labels and optional arguments.
-fair.models = c("nclm")
+fair.models = c("nclm", "frrm")
 
 fair.models.labels = c(
-  "nclm" = "Komiyama et al. (2018)"
+  "nclm" = "Komiyama et al. (2018)",
+  "frrm" = "Fair Ridge Regression"
 )
 
 fair.models.extra.args = list(
-  "nclm" = c("lambda", "covfun")
+  "nclm" = c("lambda", "covfun"),
+  "frrm" = character(0)
 )
 
 # cross-validation method labels and optional arguments.

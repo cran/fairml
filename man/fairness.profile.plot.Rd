@@ -8,7 +8,7 @@
 
 }
 \usage{
-fairness.profile.plot(response, predictors, sensitive, epsilon,
+fairness.profile.plot(response, predictors, sensitive, unfairness,
   legend = FALSE, type = "coefficients", model = "nclm", model.args = list())
 }
 \arguments{
@@ -17,9 +17,9 @@ fairness.profile.plot(response, predictors, sensitive, epsilon,
     factor columns; the predictors.}
   \item{sensitive}{a numeric matrix or a data frame containing numeric and
     factor columns; the sensitive attributes.}
-  \item{epsilon}{a vector of positive numbers in [0, 1], the proportion of the
-    explained variance that can be attributed to \code{S}. The default value is
-    \code{seq(from = 0.00, to = 1, by = 0.02)}.}
+  \item{unfairness}{a vector of positive numbers in [0, 1], the proportion of
+    the explained variance that can be attributed to the sensitive attributes.
+    The default value is \code{seq(from = 0.00, to = 1, by = 0.02)}.}
   \item{legend}{a logical value, whether to add a legend to the plot.}
   \item{type}{a character string, either \code{"coefficients"} (the default) or
     \code{"variance"}.}
@@ -30,14 +30,14 @@ fairness.profile.plot(response, predictors, sensitive, epsilon,
 \details{
 
   \code{fairness.profile.plot()} fits the model for all the values of the
-  argument \code{epsilon}, and produces a profile plot of the regression
+  argument \code{unfairness}, and produces a profile plot of the regression
   coefficients or the proportion of explained variance.
 
   If \code{type = "coefficients"}, the coefficients of the model are plotted
-  against the values of \code{epsilon}.
+  against the values of \code{unfairness}.
 
   If \code{type = "variance"}, the following quantities are plotted against the
-  values of epsilon:
+  values of \code{unfairness}:
 
   \enumerate{
 
