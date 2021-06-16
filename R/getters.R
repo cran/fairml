@@ -24,14 +24,35 @@ residuals.fair.model = function(object, ...) {
 }#RESIDUALS.FAIR.MODEL
 
 # extract the fitted values.
-fitted.fair.model = function(object, ...) {
+fitted.fair.model = function(object, type = "response", ...) {
 
   if (!is(object, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
+  # check the type of fitted values.
+  if (is(object, fair.regressions))
+    check.label(type, c("response"), "fitted value type")
+  else if (is(object, fair.classifiers))
+    check.label(type, c("response", "class", "link"), "fitted value type")
+
   check.unused.args(list(...), character(0))
 
-  return(object$main$fitted)
+  if (type == "link") {
+
+    return(prob2link(object$main$fitted))
+
+  }#THEN
+  if (type == "response") {
+
+    return(object$main$fitted)
+
+  }#THEN
+  else if (type == "class") {
+
+    return(prob2class(object$main$fitted,
+             labels = object$data$response$levels[["response"]]))
+
+  }#THEN
 
 }#FITTED.FAIR.MODEL
 

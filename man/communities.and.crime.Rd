@@ -48,7 +48,7 @@ data(communities.and.crime)
 \references{
 
   UCI Machine Learning Repository: \cr
-  http://archive.ics.uci.edu/ml/datasets/communities+and+crime
+  \code{http://archive.ics.uci.edu/ml/datasets/communities+and+crime}
 
 }
 \examples{

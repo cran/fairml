@@ -73,3 +73,59 @@ predict.frrm = function(object, new.predictors, new.sensitive, ...) {
     new.sensitive = new.sensitive)
 
 }#PREDICT.FRRM
+
+# predict new observations for the Zafar's logistic regression.
+predict.zlrm = function(object, new.predictors, type = "response", ...) {
+
+  if (!is(object, "zlrm"))
+    stop("'object' must be a 'zlrm' object.")
+
+  # check the type of fitted values.
+  check.label(type, c("response", "class", "link"), "prediction type")
+
+  check.unused.args(list(...), character(0))
+
+  # check the predictors, in themselves and against the data the model was
+  # fitted from.
+  new.predictors = check.data(new.predictors, min.nobs = 1, varletter = "X")
+  new.predictors = check.data.vs.info(new.predictors, object$data$predictors)
+  new.predictors = design.matrix(new.predictors)
+
+  # extract the coefficients of the main model.
+  coefs = coef(object)
+
+  # check that they match with the variables, and that they appear in the same
+  # order.
+  if (!setequal(colnames(new.predictors), names(coefs)))
+    stop("'new.predictors' have different variables than the model.")
+  if (any(colnames(new.predictors) != names(coefs)))
+    new.predictors = new.predictors[, names(coefs)]
+
+  # compute the linear component of the model.
+  nfit = as.vector(new.predictors %*% coefs)
+  # compute the probability of success.
+  probs = 1 / (1 + exp(-nfit))
+
+  if (type == "link") {
+
+    # predict on the scale of the linear component of the model.
+    return(nfit)
+
+  }#THEN
+  else if (type == "response") {
+
+    # predict the probability of success.
+    predictions = probs
+
+  }#THEN
+  else if (type == "class") {
+
+    # predict the class label.
+    predictions =
+      prob2class(probs, labels = object$data$response$levels[["response"]])
+
+  }#THEN
+
+  return(predictions)
+
+}#PREDICT.ZLRM

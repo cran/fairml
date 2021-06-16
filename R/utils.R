@@ -22,4 +22,23 @@ wcat = function(header, value) {
 
 }#WCAT
 
+# transform a classification probability into a binary class factor.
+prob2class = function(prob, labels) {
 
+  factor(prob > 0.5, levels = c("FALSE", "TRUE"), labels = labels)
+
+}#PROB2CLASS
+
+# transform a classification probability into the linear component of the model.
+prob2link = function(prob) {
+
+  log(prob / (1 - prob))
+
+}#PROB2LINK
+
+# range of values to plot over, with a bit of white space on either side.
+extended.range = function(values, by = 0.05) {
+
+  range(values) + c(-1, 1) * 0.05 * diff(range(values))
+
+}#EXTENDED.RANGE

@@ -76,8 +76,8 @@ data(national.longitudinal.survey)
 }
 \references{
 
-  U.S. Bureau of Labor Statistics:
-  https://www.bls.gov/nls/
+  U.S. Bureau of Labor Statistics. \cr
+  \code{https://www.bls.gov/nls/}
 
 }
 \examples{

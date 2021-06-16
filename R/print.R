@@ -27,69 +27,6 @@ print.fair.model = function(x, digits, ...) {
 
 }#PRINT.FAIR.MODEL
 
-# create a summary with key information from a fair model.
-summary.fair.model = function(object, ...) {
-
-  if (!is(object, "fair.model"))
-    stop("'object' must be a 'fair.model' object.")
-
-  check.unused.args(list(...), character(0))
-
-  structure(list(model = object), class = "summary.fair.model")
-
-}#SUMMARY.FAIR.MODEL
-
-# create a summary for the models in Komiyama et al. (2018).
-summary.nclm = function(object, ...) {
-
-  if (!is(object, "nclm"))
-    stop("'object' must be an 'nclm' object.")
-
-  check.unused.args(list(...), character(0))
-
-  value = object$main$r.squared.S /
-            (object$main$r.squared.S + object$main$r.squared.U)
-  r2 = 1 - var(residuals(object)) / var(fitted(object) + residuals(object))
-
-  performance = list(
-    "Ridge penalty" = object$main$lambda,
-    "Custom covariance matrix" = !identical(object$main$covfun, cov),
-    "Residual standard error" = sigma(object),
-    "Multiple R-squared" = r2,
-    c("Komiyama's R-squared" = value, "with bound" = object$main$bound)
-  )
-
-  structure(list(model = object,
-                 banner = paste("Method:", fair.models.labels["nclm"]),
-                 performance = performance),
-    class = "summary.fair.model")
-
-}#SUMMARY.NCLM
-
-# create a summary for the fair ridge regression model.
-summary.frrm = function(object, ...) {
-
-  if (!is(object, "frrm"))
-    stop("'object' must be an 'frrm' object.")
-
-  check.unused.args(list(...), character(0))
-
-  value = object$main$r.squared.S /
-            (object$main$r.squared.S + object$main$r.squared.U)
-  r2 = 1 - var(residuals(object)) / var(fitted(object) + residuals(object))
-
-  performance = list(
-    "Residual standard error" = sigma(object),
-    "Multiple R-squared" = r2,
-    c("Komiyama's R-squared" = value, "with bound" = object$main$bound)
-  )
-
-  structure(list(model = object, banner = "Method: Fair Ridge Regression",
-                 performance = performance),
-    class = "summary.fair.model")
-
-}#SUMMARY.FRRM
-
 # print the summary of a fair model.
 print.summary.fair.model = function(x, digits, ...) {
 
@@ -153,7 +90,12 @@ print.fair.kcv = function(x, print.loss = TRUE, ...) {
 
   if (print.loss) {
 
-    wcat("  expected loss:                        ", format(a$mean.loss))
+    cat("  expected loss:\n")
+    formatted.losses = format(a$loss)
+    formatted.names = paste0(names(a$loss), ":")
+    for (i in seq_along(formatted.losses))
+      wcat(sprintf("    %-34s  ", formatted.names[i]), formatted.losses[i])
+
     cat("\n")
 
   }#THEN
@@ -165,12 +107,31 @@ print.fair.kcv = function(x, print.loss = TRUE, ...) {
 # print method for a list containing multiple cross-validation runs.
 print.fair.kcv.list = function(x, ...) {
 
-  losses = sapply(x, function(x) attr(x, "mean.loss"))
+  losses = sapply(x, function(x) attr(x, "loss"))
+
+  if (is.matrix(losses)) {
+
+    formatted.losses = format(rowMeans(losses))
+    formatted.stderr = format(apply(losses, 1, sd))
+    formatted.names = paste0(rownames(losses), ":")
+
+  }#THEN
+  else {
+
+    formatted.losses = format(mean(losses))
+    formatted.stderr = format(sd(losses))
+    formatted.names = paste0(names(losses)[1], ":")
+
+  }#ELSE
 
   print.fair.kcv(x[[1]], print.loss = FALSE)
   wcat("  number of runs:                       ", length(x))
-  wcat("  average loss over the runs:           ", format(mean(losses)))
-  wcat("  standard deviation of the loss:       ", format(sd(losses)))
+  cat("  average loss over the runs:\n")
+  for (i in seq_along(formatted.losses))
+    wcat(sprintf("    %-34s  ", formatted.names[i]), formatted.losses[i])
+  cat("  standard deviation of the loss:\n")
+  for (i in seq_along(formatted.losses))
+    wcat(sprintf("    %-34s  ", formatted.names[i]), formatted.stderr[i])
   cat("\n")
 
   invisible(x)

@@ -78,8 +78,8 @@ data(compas)
 \references{
 
   Angwin J, Larson J, Mattu S, Kirchner L (2016). "Machine Bias: Theres Software
-    Used Around the Country to Predict Future Criminals."
-    https://www.propublica.org.
+    Used Around the Country to Predict Future Criminals." \cr
+    \code{https://www.propublica.org}
 
 }
 \examples{

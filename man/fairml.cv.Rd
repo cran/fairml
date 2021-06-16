@@ -11,7 +11,7 @@
 }
 \usage{
 fairml.cv(response, predictors, sensitive, method = "k-fold", ...,
-  unfairness, model, model.args = list())
+  unfairness, model, model.args = list(), cluster)
 
 cv.loss(x)
 cv.unfairness(x)
@@ -31,6 +31,8 @@ cv.folds(x)
   \item{model}{a character string, the label of the model. Currently only
     \code{"nclm"} is available.}
   \item{model.args}{additional arguments passed to the model.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}, to
+    process folds or subsamples in parallel.}
   \item{x}{an object of class \code{fair.kcv} or \code{fair.kcv.list}.}
 }
 \details{
@@ -92,8 +94,8 @@ cv.folds(x)
   \code{runs} is at least 2, an object of class \code{fair.kcv} if \code{runs}
   is equal to 1.
 
-  \code{cv.loss()} returns a numeric vectors containing the values of the loss
-  function computed for each run of cross-validation.
+  \code{cv.loss()} returns a numeric vector or a numeric matrix containing the
+  values of the loss function computed for each run of cross-validation.
 
   \code{cv.unfairness()} returns a numeric vectors containing the values of the
   unfairness criterion computed on the validation folds for each run of
@@ -117,7 +119,16 @@ cv.unfairness(kcv)
 fairml.cv(response = vur.test$y, predictors = vur.test$X,
         sensitive = vur.test$S, unfairness = 0.10, model = "nclm",
         method = "custom-folds", folds = cv.folds(kcv))
-}
+
+# run cross-validation in parallel.
+\dontrun{
+library(parallel)
+cl = makeCluster(2)
+fairml.cv(response = vur.test$y, predictors = vur.test$X,
+  sensitive = vur.test$S, unfairness = 0.10, model = "nclm",
+  method = "k-fold", k = 10, runs = 10, cluster = cl)
+stopCluster(cl)
+}}
 \author{Marco Scutari}
 \keyword{regression}
 \keyword{model selection}

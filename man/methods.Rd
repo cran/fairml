@@ -12,6 +12,12 @@
 \alias{predict.nclm}
 \alias{summary.nclm}
 \alias{deviance.nclm}
+\alias{predict.frrm}
+\alias{summary.frrm}
+\alias{deviance.frrm}
+\alias{predict.zlrm}
+\alias{summary.zlrm}
+\alias{deviance.zlrm}
 \title{Extract information from fair.model objects}
 \description{
 
@@ -23,7 +29,7 @@
 # methods for all fair.model objects.
 \method{coef}{fair.model}(object, ...)
 \method{residuals}{fair.model}(object, ...)
-\method{fitted}{fair.model}(object, ...)
+\method{fitted}{fair.model}(object, type = "response", ...)
 \method{sigma}{fair.model}(object, ...)
 \method{nobs}{fair.model}(object, ...)
 \method{print}{fair.model}(x, digits, ...)
@@ -35,10 +41,29 @@
 \method{predict}{nclm}(object, new.predictors, new.sensitive, ...)
 \method{summary}{nclm}(object, ...)
 \method{deviance}{nclm}(object, ...)
+
+# methods for frrm objects.
+\method{predict}{frrm}(object, new.predictors, new.sensitive, ...)
+\method{summary}{frrm}(object, ...)
+\method{deviance}{frrm}(object, ...)
+
+# methods for zlrm objects.
+\method{predict}{zlrm}(object, new.predictors, type = "response", ...)
+\method{summary}{zlrm}(object, ...)
+\method{deviance}{zlrm}(object, ...)
 }
 \arguments{
   \item{object,x,target,current}{an object of class \code{fair.model} or
     \code{nclm}.}
+  \item{type}{a character string, the type of fitted value. If
+    \code{"response"}, \code{fitted()} and \code{predict()} will return the
+    fitted values (if the response in the model is continuous) or the
+    classification probabilities (if it was discrete). If \code{"class"} and
+    \code{object} is a classifier, \code{fitted()} and \code{predict()} will
+    return the class labels as a factor. If \code{"link"} and \code{object} is a
+    classifier, \code{fitted()} and \code{predict()} will return the linear
+    component of the fitted or predicted value, on the scale of the link
+    function.}
   \item{digits}{a non-negative integer, the number of significant digits.}
   \item{new.predictors}{a numeric matrix or a data frame containing numeric and
     factor columns; the predictors for the new observations.}

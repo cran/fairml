@@ -22,3 +22,16 @@ deviance.frrm = function(object, ...) {
   return(sum(object$main$residuals^2))
 
 }#DEVIANCE.FRRM
+
+# deviance for Zafar's logistic regression.
+deviance.zlrm = function(object, ...) {
+
+  if (!is(object, "zlrm"))
+    stop("'object' must be an 'zlrm' object.")
+
+  check.unused.args(list(...), character(0))
+
+  return(object$main$deviance)
+
+}#DEVIANCE.ZLRM
+

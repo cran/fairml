@@ -69,7 +69,7 @@ data(german.credit)
 \references{
 
   UCI Machine Learning Repository: \cr
-  https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data)
+  \code{https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data)}
 
 }
 \keyword{datasets}

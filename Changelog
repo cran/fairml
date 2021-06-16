@@ -1,7 +1,26 @@
+fairml (0.5)
+
+  * preliminary implementation of the logistic regression model with fairness
+     constraints from Zafar et al. (2019).
+  * frrm() can now enforce both statistical parity and equality of
+     opportunity, as specified by the "definition" argument.
+  * added an argument "cluster" to enable parallel computing in fairml.cv()
+     and fairness.profile.plot().
+  * added an optional argument to regularize the predictors in frrm() with a
+     ridge penalty.
+  * added an argument "save.auxiliary" (default: FALSE) to reduce the size of
+     the model objects returned by nclm() and frrm() by not saving the fitted
+     values and the residuals of the auxiliary models that computes the
+     decorrelated predictors.
+  * included the Adult and Bank data sets from UCI, used in Zafar et al.
+     (2019).
+  * added a precision-recall profile plot for classifiers, and more
+     constraints profile plots.
+
 fairml (0.4)
 
   * preliminary implementation of the fair ridge regression model.
-  * fairness.profile.plots() no longer plots the intercept of the model.
+  * fairness.profile.plot() no longer plots the intercept of the model.
   * the "epsilon" argument has been renamed to "unfairness" thorough the
      package.
   * loss() has been renamed to cv.loss().
@@ -19,7 +38,7 @@ fairml (0.2)
 
   * improved argument sanitization.
   * improved nclm() numeric stability by standardizing variables.
-  * added data sets used in Komiyama et al. (2018).
+  * added the data sets used in Komiyama et al. (2018).
 
 fairml (0.1)
 

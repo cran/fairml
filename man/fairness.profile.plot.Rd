@@ -9,7 +9,8 @@
 }
 \usage{
 fairness.profile.plot(response, predictors, sensitive, unfairness,
-  legend = FALSE, type = "coefficients", model = "nclm", model.args = list())
+  legend = FALSE, type = "coefficients", model = "nclm", model.args = list(),
+  cluster)
 }
 \arguments{
   \item{response}{a numeric vector, the response variable.}
@@ -17,15 +18,17 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
     factor columns; the predictors.}
   \item{sensitive}{a numeric matrix or a data frame containing numeric and
     factor columns; the sensitive attributes.}
-  \item{unfairness}{a vector of positive numbers in [0, 1], the proportion of
-    the explained variance that can be attributed to the sensitive attributes.
-    The default value is \code{seq(from = 0.00, to = 1, by = 0.02)}.}
+  \item{unfairness}{a vector of positive numbers in [0, 1], how unfair is the
+    model allowed to be. The default value is \code{seq(from = 0.00, to = 1,
+    by = 0.02)}.}
   \item{legend}{a logical value, whether to add a legend to the plot.}
   \item{type}{a character string, either \code{"coefficients"} (the default) or
-    \code{"variance"}.}
+    \code{"constraints"}.}
   \item{model}{a character string, the label of the model. Currently only
     \code{"nclm"} is available.}
   \item{model.args}{additional arguments passed to the model.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}, to
+    fit models in parallel.}
 }
 \details{
 
@@ -36,19 +39,45 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
   If \code{type = "coefficients"}, the coefficients of the model are plotted
   against the values of \code{unfairness}.
 
-  If \code{type = "variance"}, the following quantities are plotted against the
-  values of \code{unfairness}:
+  If \code{type = "constraints"}, the following quantities are plotted against
+  the values of \code{unfairness}:
 
   \enumerate{
 
-    \item the proportion of variance explained by the sensitive attributes (with
-      respect to the response;
-    \item the proportion of variance explained by the predictors (with respect
-      to the response;
-    \item the proportion of variance explained by the sensitive attributes (with
-      respect to the combined sensitive attributes and predictors).
+    \item for model \code{"nclm"}, and model \code{"frrm"} with
+      \code{definition = "sp-komiyama"}:
+    \enumerate{
+
+      \item the proportion of variance explained by the sensitive attributes
+        (with respect to the response);
+      \item the proportion of variance explained by the predictors (with respect
+        to the response);
+      \item the proportion of variance explained by the sensitive attributes
+        (with respect to the combined sensitive attributes and predictors).
+
+    }
+
+    \item for model \code{"frrm"} with \code{definition = "eo-komiyama"}:
+    \enumerate{
+
+      \item the proportion of variance explained by the sensitive attributes
+        (with respect to the fitted values);
+      \item the proportion of variance explained by the response (with respect
+        to the fitted values);
+      \item the proportion of variance explained by the sensitive attributes
+        (with respect to the combined sensitive attributes and response).
+
+    }
+
+    \item for model \code{"zlrm"}: the correlations between the fitted values
+      (from \code{fitted()} with \code{type = "link"}) and the sensitive
+      attributes.
 
   }
+
+  If \code{type = "precision-recall"} and the \code{model} is a classifier, the
+  precision, recall and F1 measures are plotted against the values of
+  \code{unfairness}.
 
 }
 \value{
@@ -61,8 +90,16 @@ data(vur.test)
 fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
   sensitive = vur.test$S, type = "coefficients", legend = TRUE)
 fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, type = "variance", legend = TRUE)
-}
+  sensitive = vur.test$S, type = "constraints", legend = TRUE)
+
+# profile plots fitting models in parallel.
+\dontrun{
+library(parallel)
+cl = makeCluster(2)
+fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
+  sensitive = vur.test$S, cluster = cl)
+stopCluster(cl)
+}}
 \author{Marco Scutari}
 \keyword{plots}
 \keyword{model selection}
