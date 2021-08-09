@@ -1,17 +1,18 @@
 
 # check the response variable.
-check.response = function(response, type, min.nobs = 2) {
+check.response = function(response, model, family, min.nobs = 2) {
 
   if (missing(response))
     stop("'response' is missing.")
 
-  if (type == "continuous") {
+  if ((model %in% fair.regressions) ||
+      ((model %in% fair.family) && !missing(family) && (family == "gaussian"))) {
 
     if (!is.real.vector(response))
       stop("'response' should be a numeric vector.")
 
-  # make sure the response is a vector.
-  response = as.vector(response)
+    # make sure the response is a vector.
+    response = as.vector(response)
 
     # do not allow a zero-variance response if later we try to standardize it.
     if (min.nobs > 1)
@@ -19,7 +20,8 @@ check.response = function(response, type, min.nobs = 2) {
         stop("'response' has variance zero, it cannot be standardized.")
 
   }#THEN
-  else if (type == "binary") {
+  else if ((model %in% fair.classifiers) ||
+           ((model %in% fair.family) && !missing(family) && (family == "binomial"))) {
 
     if (!is.factor(response) || (nlevels(response) != 2))
       stop("'response' should be a factor with two levels.")

@@ -70,10 +70,10 @@ nclm(response, predictors, sensitive, unfairness, covfun, lambda = 0,
 
   Komiyama J, Takeda A, Honda J, Shimao H (2018). "Nonconvex Optimization for
     Regression with Fairness Constraints". Proceedints of the 35th International
-    Conference on Machine Learning (ICML), PMLR \strong{80}:2737--2746.
+    Conference on Machine Learning (ICML), PMLR \strong{80}:2737--2746. \cr
     \code{http://proceedings.mlr.press/v80/komiyama18a/komiyama18a.pdf}
 
 }
-\seealso{\link{frrm}}
+\seealso{\link{frrm}, \link{zlm}}
 \author{Marco Scutari}
 \keyword{regression}

@@ -1,13 +1,17 @@
-\name{zlrm}
+\name{zlm}
+\alias{zlm}
 \alias{zlrm}
-\title{Zafar's Logistic Regression}
+\title{Zafar's Linear and Logistic Regressions}
 \description{
 
-  A logistic regression model enforcing fairness by bounding the covariance
-  between sensitive attributes and predictors.
+  Linear and logistic regression models enforcing fairness by bounding the
+  covariance between sensitive attributes and predictors.
 
 }
 \usage{
+# a fair linear regression model.
+zlm(response, predictors, sensitive, unfairness)
+# a fair logistic regression model.
 zlrm(response, predictors, sensitive, unfairness)
 }
 \arguments{
@@ -22,21 +26,19 @@ zlrm(response, predictors, sensitive, unfairness)
 }
 \details{
 
-  \code{zlrm()} defines fairness as statistical parity.
+  \code{zlm()} and \code{zlrm()} define fairness as statistical parity.
 
-  The algorithm minimises the log-likelihood of the logistic regression model
-  under the constraint that the covariance between each sensitive attribute and
-  the fitted values is smaller than \code{unfairness} in absolute value. The
-  logistic regression model includes \code{predictors} as explanatory variables;
-  the variables \code{sensitive} only appear in the constraints.
-
-  Both \code{sensitive} and \code{predictors} are standardized internally before
-  estimating the regression coefficients, which are then rescaled back to match
-  the original scales of the variables.
+  Estimation minimizes the log-likelihood of the regression models under the
+  constraint that the correlation between each sensitive attribute and the
+  fitted values (on the linear predictor scale, in the case of logistic
+  regression) is smaller than \code{unfairness} in absolute value. Both models
+  include \code{predictors} as explanatory variables; the variables
+  \code{sensitive} only appear in the constraints.
 
 }
 \value{
 
+  \code{zlm()} returns an object of class \code{c("zlm", "fair.model")}.
   \code{zlrm()} returns an object of class \code{c("zlrm", "fair.model")}.
 
 }
@@ -49,4 +51,6 @@ zlrm(response, predictors, sensitive, unfairness)
 
 }
 \author{Marco Scutari}
+\seealso{\link{nclm}, \link{frrm}, \link{fgrrm}}
+\keyword{regression}
 \keyword{classification}

@@ -7,13 +7,10 @@ fairml.cv = function(response, predictors, sensitive, method = "k-fold", ...,
   check.label(model, fair.models, "model")
 
   # check arguments common to all models.
-  if (model %in% fair.regressions)
-    response = check.response(response, type = "continuous")
-  else if (model %in% fair.classifiers)
-    response = check.response(response, type = "binary")
+  response = check.response(response, model = model)
   n = length(response)
-  predictors = check.data(predictors, nobs = length(response), varletter = "X")
-  sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
+  predictors = check.data(predictors, nobs = n, varletter = "X")
+  sensitive = check.data(sensitive, nobs = n, varletter = "S")
   check.fairness.level(unfairness)
 
   # remove optional arguments that do not belong after warning.
@@ -63,66 +60,34 @@ fairml.cv = function(response, predictors, sensitive, method = "k-fold", ...,
             response = response, predictors = predictors, sensitive = sensitive,
             unfairness = unfairness, model = model, model.args = model.args)
 
-    if (model %in% fair.regressions) {
+    definition = kcv[[1]]$fitted$fairness$definition
+    family = kcv[[1]]$fitted$main$family
 
-      # match predicted and observed values.
-      pred = unlist(lapply(kcv, "[[", "predicted"))
-      obs = unlist(lapply(kcv, "[[", "observed"))
+    # match predicted and observed values.
+    pred = unlist(lapply(kcv, "[[", "predicted"))
+    obs = unlist(lapply(kcv, "[[", "observed"))
 
-      # the loss function is the residuals mean square error.
-      overall.loss = c(RMSE = mean((obs - pred)^2))
+    if (method == "hold-out") {
 
-      # compute the aggregate fairness.
-      fold.unfairness = sapply(kcv, `[[`, "unfairness")
-      overall.unfairness = weighted.mean(fold.unfairness, kcv.length)
-
-    }#THEN
-    else if (model %in% fair.classifiers) {
-
-      # match predicted and observed values.
-      pred = unlist(lapply(kcv, "[[", "predicted"))
-      obs = unlist(lapply(kcv, "[[", "observed"))
-
-      # compute the confusion matrix, which is what all performance measures in
-      # classification are computed from.
-      confusion.matrix = table(pred, obs)
-
-      tp = confusion.matrix[1, 1] + confusion.matrix[2, 2]
-      fp = confusion.matrix[2, 1]
-      fn = confusion.matrix[1, 2]
-
-      # the loss functions are precision and recall.
-      overall.loss = c(precision = 1 - fp / (fp + tp),
-                       recall = tp / (tp + fn))
-
-      # compute the overall unfairness.
-      definition = kcv[[1]]$fitted$fairness$definition
-
-      if (definition == "sp-disparate-impact") {
-
-        # indexes of the observations in test folds, to map the predictions
-        # correctly to the sensitive attributes.
-        index = lapply(kcv, "[[", "test")
-        sens = sensitive[unlist(index), ]
-        linpred = rep(0, n)
-
-        # compute predictions on the linear scale.
-        for (fold in seq_along(kcv)) {
-
-          linpred[index[[fold]]] =
-            predict(kcv[[fold]]$fitted,
-                    new.predictors = predictors[index[[fold]], ],
-                    type = "link")
-
-        }#FOR
-
-        # unfairness is defined as the correlation between each sensitive
-        # attribute and the predictions.
-        overall.unfairness = cor(linpred, sens)[1, ]
-
-      }#THEN
+      # for hold-out cross-validation, it does not make sense to pool the test
+      # folds to compute the loss because their union does not make up the whole
+      # sample; compute the average loss instead.
+      fold.loss = sapply(kcv, `[[`, "loss")
+      overall.loss = weighted.mean(fold.loss, kcv.length)
+      names(overall.loss) = names(fold.loss)[1]
 
     }#THEN
+    else {
+
+      # recompute the loss function on the pooled data.
+      overall.loss =
+        family.loss(observed = obs, predicted = pred, family = family)
+
+    }#ELSE
+
+    overall.unfairness =
+      all.unfairness(kcv = kcv, kcv.length = kcv.length, sensitive = sensitive,
+        predictors = predictors, definition = definition)
 
     # reset the names of the elements of the return value.
     names(kcv) = NULL
@@ -161,75 +126,132 @@ compute.loss.from.split = function(test, response, predictors, sensitive,
                                  unfairness = unfairness),
                             model.args))
 
-  if (model %in% fair.regressions) {
+  # find out what family the model belongs to.
+  family = fitted$main$family
 
-    # predict the values on the test set.
-    if (any(attr(fitted$main$coefficients, "sensitive"))) {
+  if (family == "gaussian")
+    type = "response"
+  else if (family == "binomial")
+    type = "class"
 
-      predicted.best = predict(fitted, new.predictors = test.predictors,
-                         new.sensitive = test.sensitive)
+  # predict the values on the test set.
+  if (any(attr(fitted$main$coefficients, "sensitive"))) {
 
-    }#THEN
-    else {
-
-      predicted.best = predict(fitted, new.predictors = test.predictors)
-
-    }#ELSE
-
-    if (fitted$fairness$definition == "sp-komiyama") {
-
-      # recompute the loss function after neutering the sensitive attributes in
-      # order to estimate how unfair the predictions are.
-      is.sensitive = attr(fitted$main$coefficients, "sensitive")
-      fitted$main$coefficients[is.sensitive] = 0
-
-      # unfairness is measured as the proportion of the variance of the
-      # predictions that is explained by the sensitive attributes.
-      predicted.fair = predict(fitted, new.predictors = test.predictors,
-                         new.sensitive = test.sensitive)
-      obs.unfairness = 1 - var(predicted.fair) / var(predicted.best)
-
-    }#THEN
-    else if (fitted$fairness$definition == "eo-komiyama") {
-
-      # regress the predicted values against the sensitive attributes and the
-      # observed response.
-      vars = anova(lm(predicted.best ~ test.sensitive + test.response))
-
-      # unfairness is measured as the proportion of variance that is explained
-      # by the sensitive attributes conditional on the observed response.
-      obs.unfairness =
-        vars["test.sensitive", "Sum Sq"] /
-          (vars["test.sensitive", "Sum Sq"] + vars["test.response", "Sum Sq"])
-
-    }#THEN
+    predicted = predict(fitted, new.predictors = test.predictors,
+                  new.sensitive = test.sensitive, type = type)
 
   }#THEN
-  else if (model %in% fair.classifiers) {
+  else {
 
-    # predict the values on the test set.
-    if (any(attr(fitted$main$coefficients, "sensitive"))) {
+    predicted = predict(fitted, new.predictors = test.predictors, type = type)
 
-      predicted.best = predict(fitted, new.predictors = test.predictors,
-                         new.sensitive = test.sensitive, type = "class")
+  }#ELSE
 
-    }#THEN
-    else {
+  loss =
+    family.loss(observed = test.response, predicted = predicted, family = family)
 
-      predicted.best = predict(fitted, new.predictors = test.predictors,
-                         type = "class")
+  unfairness =
+    fold.unfairness(fitted = fitted, predictors = predictors,
+      sensitive = sensitive, response = response, test = test)
 
-    }#ELSE
-
-    obs.unfairness = NA
-
-  }#THEN
-
-  return(list(test = test, fitted = fitted,
-           unfairness = obs.unfairness, predicted = predicted.best,
+  return(list(test = test, fitted = fitted, loss = loss,
+           unfairness = unfairness, predicted = predicted,
            observed = test.response))
 
 }#COMPUTE.LOSS.FROM.SPLIT
+
+# unfairness measured on the test set/folds.
+fold.unfairness = function(fitted, predictors, sensitive, response, test) {
+
+  definition = fitted$fairness$definition
+  family = fitted$main$family
+
+  if (definition %in% c("sp-komiyama", "eo-komiyama")) {
+
+    # create the uncorrelated predictors and the design matrix of the sensitive
+    # attributes, as well as subsetting the response.
+    predictors.design =
+      design.matrix(predictors, intercept = FALSE)[test, , drop = FALSE]
+    sensitive.design = design.matrix(sensitive)[test, , drop = FALSE]
+    decorrelated.predictors =
+      predictors.design - sensitive.design %*% fitted$auxiliary$coefficients
+    test.response = response[test]
+
+    if (definition == "sp-komiyama") {
+
+      unfairness =
+        fgrrm.sp.komiyama(model = coef(fitted), y = test.response,
+          S = sensitive.design, U = decorrelated.predictors,
+          family = family)["value"]
+
+    }#THEN
+    else if (definition == "eo-komiyama") {
+
+      unfairness =
+        fgrrm.eo.komiyama(model = coef(fitted), y = test.response,
+          S = sensitive.design, U = decorrelated.predictors,
+          family = family)["value"]
+
+    }#THEN
+
+  }#THEN
+  else if (definition == "sp-zafar-disparate-impact") {
+
+    sensitive.design = design.matrix(sensitive)[test, , drop = FALSE]
+    pred = predict(fitted, new.predictors = predictors, type = "link")[test]
+
+    unfairness = safe.cor(pred, sensitive.design)[1, ]
+    # make sure to replace NA correlations arising from variables with
+    # variance equal to zero.
+    unfairness[is.na(unfairness)] = 0
+
+  }#THEN
+
+  return(structure(unfairness, names = definition))
+
+}#FOLD.UNFAIRNESS
+
+# unfairness measured on the whole data set.
+all.unfairness = function(kcv, kcv.length, sensitive, predictors, definition) {
+
+  if (definition %in% c("sp-komiyama", "eo-komiyama")) {
+
+    fold.unfairness = sapply(kcv, `[[`, "unfairness")
+    unfairness = weighted.mean(fold.unfairness, kcv.length)
+    names(unfairness) = definition
+
+  }#THEN
+  else if (definition == "sp-zafar-disparate-impact") {
+
+    # indexes of the observations in test folds, to map the predictions
+    # correctly to the sensitive attributes.
+    index = lapply(kcv, "[[", "test")
+    sens = design.matrix(sensitive, intercept = FALSE)
+    sens = sens[unlist(index), , drop = FALSE]
+    linpred = rep(0, nrow(sens))
+
+    # compute predictions on the linear scale.
+    for (fold in seq_along(kcv)) {
+
+      linpred[index[[fold]]] =
+        predict(kcv[[fold]]$fitted,
+                new.predictors = predictors[index[[fold]], ],
+                type = "link")
+
+    }#FOR
+
+    # unfairness is defined as the correlation between each sensitive
+    # attribute and the predictions.
+    unfairness = safe.cor(linpred, sens)[1, ]
+    # make sure to replace NA correlations arising from variables with
+    # variance equal to zero.
+    unfairness[is.na(unfairness)] = 0
+
+  }#THEN
+
+  return(unfairness)
+
+}#ALL.UNFAIRNESS
 
 # extract predictive loss values from fair.kcv and fair.kcv.list objects.
 cv.loss = function(x) {
@@ -291,3 +313,36 @@ cv.folds = function(x) {
   return(folds)
 
 }#CV.FOLDS
+
+# pick the right loss function for the model's family.
+family.loss = function(observed, predicted, family) {
+
+  if (family == "gaussian")
+    rmse.loss(observed = observed, predicted = predicted)
+  else if (family == "binomial")
+    pr.loss(observed = observed, predicted = predicted)
+
+}#FAMILY.LOSS
+
+# residuals mean square error loss.
+rmse.loss = function(observed, predicted) {
+
+  return(c(RMSE = mean((observed - predicted)^2)))
+
+}#RMSE.LOSS
+
+# precision and recall loss.
+pr.loss = function(observed, predicted) {
+
+  # compute the confusion matrix, which is what all performance measures in
+  # classification are computed from.
+  confusion.matrix = table(predicted, observed)
+
+  tp = confusion.matrix[1, 1] + confusion.matrix[2, 2]
+  fp = confusion.matrix[2, 1]
+  fn = confusion.matrix[1, 2]
+
+  # the loss functions are precision and recall.
+  return(c(precision = 1 - fp / (fp + tp), recall = tp / (tp + fn)))
+
+}#PR.LOSS

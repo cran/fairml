@@ -1,3 +1,14 @@
+fairml (0.6)
+
+  * preliminary implementation of a linear regression model with the fairness
+     constraints from Zafar et al. (2019).
+  * the equality-of-opportunity version of Komiyama's definition of fairness
+     now works with fgrrm().
+  * fairml.cv() now supports fgrrm().
+  * added a logLik() method for all fair models.
+  * added an RMSE profile plot for linear regressions.
+  * Zafar's logistic regression is now faster and more robust.
+
 fairml (0.5)
 
   * preliminary implementation of the logistic regression model with fairness

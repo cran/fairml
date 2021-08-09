@@ -1,18 +1,11 @@
 # compute the decorrelated predictors and set up a fair model.
-two.stage.regression = function(model, response, predictors, sensitive,
+two.stage.regression = function(model, family, response, predictors, sensitive,
     unfairness, definition, covfun, lambda, save.auxiliary = TRUE) {
 
   # check the model to be fitted.
   check.label(model, fair.models, "model")
-  # check the arguments common to all methods.
-  response = check.response(response, type = "continuous")
-  predictors = check.data(predictors, nobs = length(response), varletter = "X")
-  sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
-  check.fairness.level(unfairness)
-  check.logical(save.auxiliary)
-  lambda = check.ridge.penalty(lambda)
-
-  # check method-specific arguments.
+  # check method-specific arguments (so that we check the family before using
+  # it to check other stuff).
   if (model == "nclm") {
 
     covfun = check.covariance.function(covfun)
@@ -26,8 +19,26 @@ two.stage.regression = function(model, response, predictors, sensitive,
       "definition of fairness")
 
   }#THEN
+  else if (model == "fgrrm") {
+
+    check.label(family, c("gaussian", "binomial"), "family")
+    check.label(definition, available.fairness.definitions,
+      "definition of fairness")
+    check.label(definition, fairness.definitions.for.model[["frrm"]],
+      "definition of fairness")
+
+  }#THEN
+
+  # check the arguments common to all methods.
+  response = check.response(response, model = model, family = family)
+  predictors = check.data(predictors, nobs = length(response), varletter = "X")
+  sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
+  check.fairness.level(unfairness)
+  check.logical(save.auxiliary)
+  lambda = check.ridge.penalty(lambda)
 
   # save some information on the data, to be used e.g. in predict().
+  response.info = get.data.info(data.frame(response = response))
   predictors.info = get.data.info(predictors)
   sensitive.info = get.data.info(sensitive)
 
@@ -72,6 +83,12 @@ two.stage.regression = function(model, response, predictors, sensitive,
             unfairness = unfairness, definition = definition, lambda = lambda)
 
   }#THEN
+  else if (model == "fgrrm") {
+
+    fit = fgrrm.glmnet(y = response, S = sensitive, U = U, family = family,
+            unfairness = unfairness, definition = definition, lambda = lambda)
+
+  }#THEN
 
   # collect all the information about the model...
   auxiliary.info = list(call = auxiliary.model$call,
@@ -88,7 +105,8 @@ two.stage.regression = function(model, response, predictors, sensitive,
     auxiliary = auxiliary.info,
     main = c(call = NA, fit$main),
     fairness = fit$fairness,
-    data = list(predictors = predictors.info, sensitive = sensitive.info)
+    data = list(response = response.info, predictors = predictors.info,
+                sensitive = sensitive.info)
   )
 
   return(structure(retval, class = c(model, "fair.model")))

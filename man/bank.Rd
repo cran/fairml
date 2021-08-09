@@ -27,7 +27,14 @@ data(bank)
     \item the variable \code{duration} has been dropped in order to learn as
       realistic predictive model;
     \item the variable \code{pdays} has been dropped because it is not defined
-      for the vast majority of samples.
+      for the vast majority of samples;
+    \item observations where \code{loan} is \code{"unknown"} have been dropped
+      because the corresponding regression coefficient estimated by \code{glm()}
+      is \code{NA};
+    \item the three observations where \code{default} is \code{"yes"} have been
+      dropped to avoid errors in cross-validation (if all those three
+      observations are in the test fold it is impossible to compute predictions
+      from them).
 
   }
 

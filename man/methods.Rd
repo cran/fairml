@@ -4,20 +4,18 @@
 \alias{residuals.fair.model}
 \alias{fitted.fair.model}
 \alias{sigma.fair.model}
+\alias{deviance.fair.model}
+\alias{logLik.fair.model}
 \alias{nobs.fair.model}
 \alias{print.fair.model}
 \alias{summary.fair.model}
 \alias{all.equal.fair.model}
 \alias{plot.fair.model}
 \alias{predict.nclm}
-\alias{summary.nclm}
-\alias{deviance.nclm}
-\alias{predict.frrm}
-\alias{summary.frrm}
-\alias{deviance.frrm}
+\alias{predict.zlm}
 \alias{predict.zlrm}
-\alias{summary.zlrm}
-\alias{deviance.zlrm}
+\alias{predict.frrm}
+\alias{predict.fgrrm}
 \title{Extract information from fair.model objects}
 \description{
 
@@ -31,26 +29,20 @@
 \method{residuals}{fair.model}(object, ...)
 \method{fitted}{fair.model}(object, type = "response", ...)
 \method{sigma}{fair.model}(object, ...)
+\method{deviance}{fair.model}(object, ...)
+\method{logLik}{fair.model}(object, ...)
 \method{nobs}{fair.model}(object, ...)
 \method{print}{fair.model}(x, digits, ...)
 \method{summary}{fair.model}(object, ...)
 \method{all.equal}{fair.model}(target, current, ...)
 \method{plot}{fair.model}(x, diagonal = FALSE, regression = FALSE, ...)
 
-# methods for nclm objects.
-\method{predict}{nclm}(object, new.predictors, new.sensitive, ...)
-\method{summary}{nclm}(object, ...)
-\method{deviance}{nclm}(object, ...)
-
-# methods for frrm objects.
-\method{predict}{frrm}(object, new.predictors, new.sensitive, ...)
-\method{summary}{frrm}(object, ...)
-\method{deviance}{frrm}(object, ...)
-
-# methods for zlrm objects.
+# predict() methods.
+\method{predict}{nclm}(object, new.predictors, new.sensitive, type = "response", ...)
+\method{predict}{zlm}(object, new.predictors, type = "response", ...)
 \method{predict}{zlrm}(object, new.predictors, type = "response", ...)
-\method{summary}{zlrm}(object, ...)
-\method{deviance}{zlrm}(object, ...)
+\method{predict}{frrm}(object, new.predictors, new.sensitive, type = "response", ...)
+\method{predict}{fgrrm}(object, new.predictors, new.sensitive, type = "response", ...)
 }
 \arguments{
   \item{object,x,target,current}{an object of class \code{fair.model} or

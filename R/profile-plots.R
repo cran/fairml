@@ -1,8 +1,7 @@
 
 # plot a profile plot of the coefficients.
 fairness.profile.plot = function(response, predictors, sensitive, unfairness,
-    legend = FALSE, type = "coefficients", model = "nclm",
-    model.args = list(), cluster) {
+    legend = FALSE, type = "coefficients", model, model.args = list(), cluster) {
 
   # diagnostic plots are lattice plots.
   check.and.load.package("lattice")
@@ -11,10 +10,7 @@ fairness.profile.plot = function(response, predictors, sensitive, unfairness,
   check.label(model, fair.models, "model")
 
   # check response, predictors and sensitive attributes.
-  if (model %in% fair.regressions)
-    response = check.response(response, type = "continuous")
-  else if (model %in% fair.classifiers)
-    response = check.response(response, type = "binary")
+  response = check.response(response, model = model)
   predictors = check.data(predictors, nobs = length(response), varletter = "X")
   sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
   unfairness = check.fairness.level(unfairness, scalar = FALSE)
@@ -35,7 +31,7 @@ fairness.profile.plot = function(response, predictors, sensitive, unfairness,
   cluster = check.cluster(cluster)
 
   # fit the model for each fairness level.
-  fit = function(level) {
+  model.fit = function(level) {
     do.call(model, c(list(response = response,
                           predictors = predictors,
                           sensitive = sensitive,
@@ -43,24 +39,50 @@ fairness.profile.plot = function(response, predictors, sensitive, unfairness,
                      model.args))
   }
 
-  models = smartSapply(cluster, unfairness, fit)
+  fitted = smartSapply(cluster, unfairness, model.fit)
 
   if (type == "coefficients") {
 
-    coefficients.plot(models = models, unfairness = unfairness,
+    coefficients.plot(models = fitted, unfairness = unfairness,
       response = response, legend = legend)
 
   }#THEN
   else if (type == "constraints") {
 
-    constraints.plot(models = models, unfairness = unfairness,
+    constraints.plot(models = fitted, unfairness = unfairness,
       response = response, legend = legend)
 
   }#THEN
   else if (type == "precision-recall") {
 
-    precision.recall.plot(models = models, unfairness = unfairness,
+    if (model %in% fair.family) {
+
+      family = fitted[[1]]$main$family
+
+      if (family != "binomial")
+        stop("model ", q(model), " with family ", q(family),
+             " is not supported by profile plot ", q(type), ".")
+
+    }#THEN
+
+    precision.recall.plot(models = fitted, unfairness = unfairness,
       response = response, legend = legend)
+
+  }#THEN
+  else if (type == "rmse") {
+
+    if (model %in% fair.family) {
+
+      family = fitted[[1]]$main$family
+
+      if (family != "gaussian")
+        stop("model ", q(model), " with family ", q(family),
+             " is not supported by profile plot ", q(type), ".")
+
+    }#THEN
+
+    rmse.plot(models = fitted, unfairness = unfairness, response = response,
+      legend = legend)
 
   }#THEN
 
@@ -352,3 +374,42 @@ precision.recall.plot = function(models, unfairness, response, legend) {
     })
 
 }#PRECISION.RECALL.PLOT
+
+rmse.plot = function(models, unfairness, response, legend) {
+
+  # graphical parameters.
+  lwd = 1.5
+  col = "darkblue"
+
+  # extract the fitted values from the models.
+  models = lapply(models, `[[`, "main")
+  rmse = sapply(models, sigma)
+
+  # create the legend.
+  if (legend) {
+
+    key = list(text = list(c("RMSE")),
+               lines = list(col = col, lwd = lwd),
+               corner = c(0.90, 0.075))
+
+  }#THEN
+  else {
+
+    key = NULL
+
+  }#ELSE
+
+  # plot and return (relying on autoprint to display the plot).
+  lattice::xyplot(rmse ~ unfairness,
+    xlab = "unfairness", ylab = "RMSE",
+    col = col, type = "l", lwd = lwd,
+    xlim = extended.range(unfairness),
+    scales = list(tck = c(1, 0)), key = key,
+    panel = function(y, x, ...) {
+
+      lattice::panel.xyplot(y = y, x = x, ...)
+      lattice::panel.abline(h = c(0, 1), col = "lightgray", lty = "dashed")
+
+    })
+
+}#RMSE.PLOT

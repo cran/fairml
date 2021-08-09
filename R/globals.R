@@ -1,35 +1,42 @@
 
 # fair model labels and optional arguments.
-fair.regressions = c("nclm", "frrm")
+fair.regressions = c("nclm", "frrm", "zlm")
 fair.classifiers = c("zlrm")
-fair.models = c(fair.regressions, fair.classifiers)
+fair.family = c("fgrrm")
+fair.models = c(fair.regressions, fair.classifiers, fair.family)
 
 fair.models.labels = c(
   "nclm" = "Komiyama et al. (2018)",
   "frrm" = "Fair Ridge Regression",
+  "fgrrm" = "Fair Generalized Ridge Regression",
+  "zlm" = "Zafar's Linear Regression",
   "zlrm" = "Zafar's Logistic Regression"
 )
 
 fair.models.extra.args = list(
   "nclm" = c("lambda", "covfun"),
   "frrm" = c("lambda", "definition"),
-  "zlrm"  = character(0)
+  "fgrrm" = c("family", "lambda", "definition"),
+  "zlm" = character(0),
+  "zlrm" = character(0)
 )
 
 # fairness definition labels.
 available.fairness.definitions = c("sp-komiyama", "eo-komiyama",
-  "sp-disparate-impact")
+  "sp-zafar-disparate-impact")
 
 fairness.definitions.labels = c(
-  "sp-komiyama" = "statistical parity",
-  "eo-komiyama" = "equality of opportunity",
-  "sp-disparate-impact" = "disparate impact"
+  "sp-komiyama" = "Komiyama's R^2 (statistical parity)",
+  "eo-komiyama" = "Komiyama's R^2 (equality of opportunity)",
+  "sp-zafar-disparate-impact" = "Marginal correlation (disparate impact)"
 )
 
 fairness.definitions.for.model = list(
   "nclm" = "sp-komiyama",
   "frrm" = c("sp-komiyama", "eo-komiyama"),
-  "zlrm" = "sp-disparate-impact"
+  "fgrrm" = "sp-komiyama",
+  "zlm" = "sp-zafar-disparate-impact",
+  "zlrm" = "sp-zafar-disparate-impact"
 )
 
 # cross-validation method labels and optional arguments.
@@ -42,10 +49,12 @@ cv.extra.args = list(
 )
 
 # types of profile plots and what models they apply to.
-available.profile.plots = c("coefficients", "constraints", "precision-recall")
+available.profile.plots = c("coefficients", "constraints", "precision-recall",
+  "rmse")
 
 models.for.plot  = list(
-  "coefficients" = c("nclm", "frrm", "zlrm"),
-  "constraints" = c("nclm", "frrm", "zlrm"),
-  "precision-recall" = c("zlrm")
+  "coefficients" = c("nclm", "frrm", "fgrrm", "zlm", "zlrm"),
+  "constraints" = c("nclm", "frrm", "fgrrm", "zlm", "zlrm"),
+  "precision-recall" = c("zlrm", "fgrrm"),
+  "rmse" = c("nclm", "frrm", "fgrrm", "zlm")
 )

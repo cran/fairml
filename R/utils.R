@@ -42,3 +42,22 @@ extended.range = function(values, by = 0.05) {
   range(values) + c(-1, 1) * 0.05 * diff(range(values))
 
 }#EXTENDED.RANGE
+
+# loglikelihood of a linear regression model.
+linear.model.loglikelihood = function(residuals, p) {
+
+  nobs = length(residuals)
+
+  # this is what logLik.lm() does.
+  value = 0.5 * ( - nobs * (log(2 * pi) + 1 - log(nobs) + log(sum(residuals^2))))
+
+  return(structure(value, nobs = nobs, df = p + 1, class = "logLik"))
+
+}#LINEAR.MODEL.LOGLIKELIHOOD
+
+# wrap cor() so that it handles zero-variance variables.
+safe.cor = function(x, y) {
+
+  suppressWarnings(cor(x, y))
+
+}#SAFE.COR

@@ -9,8 +9,7 @@
 }
 \usage{
 fairness.profile.plot(response, predictors, sensitive, unfairness,
-  legend = FALSE, type = "coefficients", model = "nclm", model.args = list(),
-  cluster)
+  legend = FALSE, type = "coefficients", model, model.args = list(), cluster)
 }
 \arguments{
   \item{response}{a numeric vector, the response variable.}
@@ -24,8 +23,9 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
   \item{legend}{a logical value, whether to add a legend to the plot.}
   \item{type}{a character string, either \code{"coefficients"} (the default) or
     \code{"constraints"}.}
-  \item{model}{a character string, the label of the model. Currently only
-    \code{"nclm"} is available.}
+  \item{model}{a character string, the label of the model. Currently
+    \code{"nclm"}, \code{"frrm"}, \code{"fgrrm"}, \code{"zlm"} and \code{"zlrm"}
+    are available.}
   \item{model.args}{additional arguments passed to the model.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}, to
     fit models in parallel.}
@@ -44,7 +44,7 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
 
   \enumerate{
 
-    \item for model \code{"nclm"}, and model \code{"frrm"} with
+    \item For model \code{"nclm"}, and model \code{"frrm"} with
       \code{definition = "sp-komiyama"}:
     \enumerate{
 
@@ -57,7 +57,7 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
 
     }
 
-    \item for model \code{"frrm"} with \code{definition = "eo-komiyama"}:
+    \item For model \code{"frrm"} with \code{definition = "eo-komiyama"}:
     \enumerate{
 
       \item the proportion of variance explained by the sensitive attributes
@@ -69,14 +69,21 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
 
     }
 
-    \item for model \code{"zlrm"}: the correlations between the fitted values
-      (from \code{fitted()} with \code{type = "link"}) and the sensitive
-      attributes.
+    \item For model \code{"fgrrm"}: same as for \code{"frrm"} with the same
+      \code{definition}.
+
+    \item For models \code{"zlm"} and \code{"zlrm"}: the correlations between
+      the fitted values (from \code{fitted()} with \code{type = "link"}) and the
+      sensitive attributes.
 
   }
 
   If \code{type = "precision-recall"} and the \code{model} is a classifier, the
   precision, recall and F1 measures are plotted against the values of
+  \code{unfairness}.
+
+  If \code{type = "rmse"} and the \code{model} is a linear regression, the
+  residuals mean square error are plotted against the values of
   \code{unfairness}.
 
 }
@@ -88,16 +95,18 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
 \examples{
 data(vur.test)
 fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, type = "coefficients", legend = TRUE)
+  sensitive = vur.test$S, type = "coefficients", model = "nclm", legend = TRUE)
 fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, type = "constraints", legend = TRUE)
+  sensitive = vur.test$S, type = "constraints", model = "nclm", legend = TRUE)
+fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
+  sensitive = vur.test$S, type = "rmse", model = "nclm", legend = TRUE)
 
 # profile plots fitting models in parallel.
 \dontrun{
 library(parallel)
 cl = makeCluster(2)
 fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, cluster = cl)
+  sensitive = vur.test$S, model = "nclm", cluster = cl)
 stopCluster(cl)
 }}
 \author{Marco Scutari}

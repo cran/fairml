@@ -13,14 +13,24 @@ all.equal.fair.model = function(target, current, ...) {
 
   differences = character(0)
 
-  # both models should be regression models.
-  target.is.regression = is.numeric(fitted(target))
-  current.is.regression = is.numeric(fitted(current))
+  # are both models regression models?
+  target.is.regression =
+    is(target, fair.regressions) ||
+    (is(target, fair.family) && target$main$family == "gaussian")
+  current.is.regression =
+    is(current, fair.regressions)
+    (is(current, fair.family) && current$main$family == "gaussian")
+  target.is.classifier =
+    is(target, fair.classifiers) ||
+    (is(target, fair.family) && target$main$family == "binomial")
+  current.is.classifier =
+    is(current, fair.classifiers)
+    (is(current, fair.family) && current$main$family == "binomial")
 
-  if (target.is.regression && !current.is.regression)
-    differences = "'target' is a regression model, 'current' is not."
-  else if (!target.is.regression && current.is.regression)
-    differences = "'current' is a regression model, 'target' is not."
+  if (target.is.regression && current.is.classifier)
+    differences = "'target' is a regression model, 'current' is a classifier."
+  else if (target.is.classifier && current.is.regression)
+    differences = "'current' is a regression model, 'target' is a classifier."
 
   # coefficients may be different.
   diff = all.equal(coef(target), coef(current))

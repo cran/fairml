@@ -2,8 +2,8 @@
 nclm = function(response, predictors, sensitive, unfairness, covfun, lambda = 0,
          save.auxiliary = FALSE) {
 
-  fitted = two.stage.regression(model = "nclm", response = response,
-             predictors = predictors, sensitive = sensitive,
+  fitted = two.stage.regression(model = "nclm", family = NULL,
+             response = response, predictors = predictors, sensitive = sensitive,
              unfairness = unfairness, definition = "sp-komiyama",
              covfun = covfun, lambda = lambda, save.auxiliary = save.auxiliary)
 
@@ -76,9 +76,10 @@ nclm.zero.sensitive = function(y, S, U, covfun, lambda) {
                 coefficients = coefs,
                 residuals = resid,
                 fitted.values = fitted,
-                r.squared.S = r2.S,
-                r.squared.U = r2.U,
                 r2.statistical.parity = r2.S / (r2.S + r2.U),
+                family = "gaussian",
+                deviance = sum(resid^2),
+                loglik = linear.model.loglikelihood(resid, length(coefs)),
                 arguments = list(
                   lambda = lambda,
                   covfun = covfun
@@ -190,9 +191,10 @@ nclm.optiSolve = function(y, S, U, epsilon, covfun, lambda) {
                 coefficients = coefs,
                 residuals = resid,
                 fitted.values = fitted,
-                r.squared.S = r2.S,
-                r.squared.U = r2.U,
                 r2.statistical.parity = r2.S / (r2.S + r2.U),
+                family = "gaussian",
+                deviance = sum(resid^2),
+                loglik = linear.model.loglikelihood(resid, length(coefs)),
                 arguments = list(
                   lambda = lambda,
                   covfun = covfun

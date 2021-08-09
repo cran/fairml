@@ -1,6 +1,6 @@
 
-# fair logistic regression from Zafar et al. (2019).
-zlrm = function(response, predictors, sensitive, unfairness) {
+# fair linear regression adapted from Zafar et al. (2019).
+zlm = function(response, predictors, sensitive, unfairness) {
 
   build.return.value  = function(model, coefs) {
 
@@ -12,15 +12,17 @@ zlrm = function(response, predictors, sensitive, unfairness) {
     else
       coefs = structure(coefs, names = colnames(predictors))
 
+    resid = as.vector(residuals(model))
+
     return(structure(list(
       auxiliary = NULL,
       main = list(
         call = call,
         coefficients = coefs,
-        residuals = as.vector(residuals(model)),
+        residuals = resid,
         fitted.values = as.vector(fitted(model)),
-        family = "binomial",
-        deviance = model$deviance,
+        family = "gaussian",
+        deviance = sum(resid^2),
         loglik = logLik(model)
       ),
       fairness = list(
@@ -31,7 +33,7 @@ zlrm = function(response, predictors, sensitive, unfairness) {
       data = list(response = response.info,
                   predictors = predictors.info,
                   sensitive = sensitive.info)
-    ), class = c("zlrm", "fair.model")))
+    ), class = c("zlm", "fair.model")))
 
   }#BUILD.RETURN.VALUE
 
@@ -39,7 +41,7 @@ zlrm = function(response, predictors, sensitive, unfairness) {
   call = match.call()
 
   # check the variables.
-  response = check.response(response, model = "zlrm")
+  response = check.response(response, model = "zlm")
   predictors = check.data(predictors, nobs = length(response), varletter = "X")
   sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
   # check the fairness constraint.
@@ -63,8 +65,7 @@ zlrm = function(response, predictors, sensitive, unfairness) {
     overall.cov = rowSums(cov(predictors, sensitive))
     allowed.predictors = predictors[, overall.cov == 0, drop = FALSE]
     # fit a completely fair model and return it.
-    completely.fair.model =
-      glm(response ~ allowed.predictors - 1, family = "binomial")
+    completely.fair.model = lm(response ~ allowed.predictors - 1)
     # build a vector of coefficients that includes zero coefficients for the
     # predictors we have dropped.
     coefs = structure(rep(0, length(overall.cov)), names = names(overall.cov))
@@ -74,26 +75,18 @@ zlrm = function(response, predictors, sensitive, unfairness) {
 
   }#THEN
 
-  # then fit an unconstrained logistic regression, to check whether the
+  # then fit an unconstrained linear regression, to check whether the
   # constraints are active.
-  unconstrained.model = glm(response ~ predictors - 1, family = "binomial")
+  unconstrained.model = lm(response ~ predictors - 1)
 
-  if (anyNA(coef(unconstrained.model))) {
-
-    NAcoefs = names(which(is.na(coef(unconstrained.model))))
-    stop("the coefficient(s) ", q(NAcoefs),
-         " are NA in the unconstrained model.")
-
-  }#THEN
-
-  unconstrained.fitted = predictors %*% coef(unconstrained.model)
+  unconstrained.fitted = fitted(unconstrained.model)
   correlations = cor(sensitive, unconstrained.fitted)
 
   if (all(abs(correlations) < unfairness))
     return(build.return.value(unconstrained.model))
 
   # perform the constrained optimization.
-  coefs = constrained.logistic(response = response, predictors = predictors,
+  coefs = constrained.linear(response = response, predictors = predictors,
              sensitive = sensitive, unfairness = unfairness,
              max.covariance = max(abs(cov(sensitive, unconstrained.fitted))))
 
@@ -102,20 +95,16 @@ zlrm = function(response, predictors, sensitive, unfairness) {
   attr(coefs, "sensitive") = rep(FALSE, length(coefs))
   # fit the logistic regression with the given coefficients, computing all the
   # quantities we are going to return in the process.
-  final.model = glm(response ~ - 1, offset = predictors %*% coefs,
-                    family = "binomial")
+  final.model = lm(response ~ - 1, offset = predictors %*% coefs)
 
   return(build.return.value(final.model, coefs))
 
-}#ZLRM
+}#ZLM
 
 # CVXR wrapper to make the code simpler.
-constrained.logistic = function(response, predictors, sensitive, unfairness,
+constrained.linear = function(response, predictors, sensitive, unfairness,
   max.covariance) {
 
-  # transform the response to get coefficient signs that are coherent with those
-  # from glm().
-  yy  = 2 - as.numeric(response)
   n = length(response)
 
   # center sensitive attributes, to avoid doing that in the optimizer.
@@ -130,15 +119,13 @@ constrained.logistic = function(response, predictors, sensitive, unfairness,
 
     # define the variables of the optimization problem.
     coefs = Variable(rows = ncol(predictors), cols = 1)
-    # define the objective function, the negated loglikelihood of logistic
-    # regression.
-    obj = -sum(logistic(-predictors[yy == 0, ] %*% coefs)) -
-           sum(logistic(predictors[yy == 1, ] %*% coefs))
+    # define the objective function, the sum of the squared residuals.
+    obj = sum_squares(response - predictors %*% coefs)
     # define the constraints on the covariances between the sensitive attributes
     # and the fitted values.
     constraints = list(abs(xts %*% coefs) / (n - 1) <= cov.bound)
     # formulate the constrained optimization problem.
-    prob = Problem(Maximize(obj), constraints = constraints)
+    prob = Problem(Minimize(obj), constraints = constraints)
     # solve it.
     result = solve(prob, ignore_dcp = TRUE)
 
@@ -146,7 +133,7 @@ constrained.logistic = function(response, predictors, sensitive, unfairness,
       return(result$getValue(coefs))
 
     # try #2: if the default solver fails, try again with a different one (which
-    # is # much slower but seems to fail less often).
+    # is much slower but seems to fail less often).
     result = solve(prob, solver = "SCS", ignore_dcp = TRUE)
 
     if (result$status %in% c("optimal", "optimal_inaccurate"))
@@ -191,5 +178,5 @@ constrained.logistic = function(response, predictors, sensitive, unfairness,
 
   return(coefs)
 
-}#CONSTRAINED.LOGISTIC
+}#CONSTRAINED.LINEAR
 

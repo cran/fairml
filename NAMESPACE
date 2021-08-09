@@ -1,6 +1,6 @@
 export(
   # models.
-  "nclm", "frrm", "zlrm",
+  "nclm", "frrm", "fgrrm", "zlm", "zlrm",
   # training and benchmarking models.
   "fairml.cv", "cv.loss", "cv.unfairness", "cv.folds",
   # diagnostic plots.
@@ -20,14 +20,10 @@ importFrom("parallel", "parSapplyLB", "clusterEvalQ")
 
 import("CVXR")
 
-S3method(summary, "nclm")
-S3method(deviance, "nclm")
 S3method(predict, "nclm")
-S3method(summary, "frrm")
-S3method(deviance, "frrm")
 S3method(predict, "frrm")
-S3method(summary, "zlrm")
-S3method(deviance, "zlrm")
+S3method(predict, "fgrrm")
+S3method(predict, "zlm")
 S3method(predict, "zlrm")
 
 S3method(print, "fair.model")
@@ -37,6 +33,8 @@ S3method(coef, "fair.model")
 S3method(fitted, "fair.model")
 S3method(residuals, "fair.model")
 S3method(sigma, "fair.model")
+S3method(deviance, "fair.model")
+S3method(logLik, "fair.model")
 S3method(nobs, "fair.model")
 S3method(predict, "fair.model")
 S3method(plot, "fair.model")

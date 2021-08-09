@@ -22,8 +22,13 @@
 
     \item \code{frrm()}: my fair (linear) ridge regression model.
 
+    \item \code{fgrrm()}: my fair generalized (linear) ridge regression model.
+
     \item \code{zlrm()}: the fair logistic regression with covariance
       constraints from Zafar et al. (2019).
+
+    \item \code{zlrm()}: a fair linear regression with covariance
+      constraints following Zafar et al. (2019).
 
   }
 

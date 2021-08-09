@@ -1,7 +1,7 @@
 \name{communities.and.crime}
 \docType{data}
 \alias{communities.and.crime}
-\title{iCommunities and Crime Data Set}
+\title{Communities and Crime Data Set}
 \description{
 
   Combined socio-economic data from the 1990 Census, law enforcement data

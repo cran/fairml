@@ -52,13 +52,27 @@ print.summary.fair.model = function(x, digits, ...) {
   print.fair.model(x$model, digits = digits)
   cat("\n")
 
-  # performance measures.
-  for (i in seq_along(x$performance)) {
+  # print various pieces of informations on the performance and fairness of the
+  # model.
+  for (i in seq_along(x$info)) {
 
-    perf = unlist(x$performance[i])
-    for (j in seq_along(perf))
-      cat(names(perf[j]), ": ", format(perf[j], digits = digits), " ", sep = "")
-    cat("\n")
+    # for vector arguments: if they have a name, print them individually;
+    # otherwise, put them all on the same line.
+    if ((names(x$info[i]) != "") && (length(x$info[[i]]) > 1)) {
+
+      cat(names(x$info[i]), ":\n", sep = "")
+      print(x$info[[i]], digits = digits)
+
+    }#THEN
+    else {
+
+      perf = unlist(x$info[i])
+      for (j in seq_along(perf))
+        cat(names(perf[j]), ": ",
+            format(perf[j], digits = digits), " ", sep = "")
+      cat("\n")
+
+    }
 
   }#FOR
 

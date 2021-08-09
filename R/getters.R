@@ -30,9 +30,11 @@ fitted.fair.model = function(object, type = "response", ...) {
     stop("'object' must be a 'fair.model' object.")
 
   # check the type of fitted values.
-  if (is(object, fair.regressions))
+  if (is(object, fair.regressions) ||
+      (is(object, fair.family) && (object$main$family == "gaussian")))
     check.label(type, c("response"), "fitted value type")
-  else if (is(object, fair.classifiers))
+  else if (is(object, fair.classifiers) ||
+            (is(object, fair.family) && (object$main$family == "binomial")))
     check.label(type, c("response", "class", "link"), "fitted value type")
 
   check.unused.args(list(...), character(0))
@@ -81,3 +83,26 @@ sigma.fair.model = function(object, ...) {
   return(sqrt(deviance(object, ...) / resid.df))
 
 }#SIGMA.FAIR.MODEL
+
+# deviance for fair models.
+deviance.fair.model = function(object, ...) {
+
+  if (!is(object, "fair.model"))
+    stop("'object' must be an 'fair.model' object.")
+
+  check.unused.args(list(...), character(0))
+
+  return(object$main$deviance)
+
+}#DEVIANCE.FAIR.MODEL
+
+logLik.fair.model = function(object, ...) {
+
+  if (!is(object, "fair.model"))
+    stop("'object' must be an 'fair.model' object.")
+
+  check.unused.args(list(...), character(0))
+
+  return(object$main$loglik)
+
+}#LOGLIK.FAIR.MODEL

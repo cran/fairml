@@ -10,8 +10,8 @@
 
 }
 \usage{
-fairml.cv(response, predictors, sensitive, method = "k-fold", ...,
-  unfairness, model, model.args = list(), cluster)
+fairml.cv(response, predictors, sensitive, method = "k-fold", ..., unfairness,
+  model, model.args = list(), cluster)
 
 cv.loss(x)
 cv.unfairness(x)
@@ -28,8 +28,9 @@ cv.folds(x)
   \item{\dots}{additional arguments for the cross-validation \code{method}.}
   \item{unfairness}{a positive number in [0, 1], the proportion of the explained
     variance that can be attributed to the sensitive attributes.}
-  \item{model}{a character string, the label of the model. Currently only
-    \code{"nclm"} is available.}
+  \item{model}{a character string, the label of the model. Currently
+    \code{"nclm"}, \code{"frrm"}, \code{"fgrrm"}, \code{"zlm"} and \code{"zlrm"}
+    are available.}
   \item{model.args}{additional arguments passed to the model.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}, to
     process folds or subsamples in parallel.}
@@ -130,5 +131,4 @@ fairml.cv(response = vur.test$y, predictors = vur.test$X,
 stopCluster(cl)
 }}
 \author{Marco Scutari}
-\keyword{regression}
 \keyword{model selection}
