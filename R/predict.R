@@ -2,7 +2,7 @@
 # predict new observations for a generic fair model.
 predict.fair.model = function(object, ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
   check.unused.args(list(...), character(0))
@@ -46,8 +46,8 @@ predict.two.stages = function(object, new.predictors, new.sensitive, type) {
 
   linear.predictor = as.vector(newdata %*% coefs)
 
-  if (is(object, fair.regressions) ||
-      (is(object, fair.family) && (object$main$family == "gaussian"))) {
+  if (inherits(object, fair.regressions) ||
+      (inherits(object, fair.family) && (object$main$family == "gaussian"))) {
 
     # check the type of fitted values.
     check.label(type, c("response", "link"), "prediction type")
@@ -55,8 +55,8 @@ predict.two.stages = function(object, new.predictors, new.sensitive, type) {
     return(linear.predictor)
 
   }#THEN
-  else if (is(object, fair.classifiers) ||
-           (is(object, fair.family) && (object$main$family == "binomial"))) {
+  else if (inherits(object, fair.classifiers) ||
+           (inherits(object, fair.family) && (object$main$family == "binomial"))) {
 
     # check the type of fitted values.
     check.label(type, c("response", "class", "link"), "prediction type")
@@ -98,7 +98,7 @@ classifier.prediction = function(linear.predictor, type, labels) {
 predict.nclm = function(object, new.predictors, new.sensitive,
     type = "response", ...) {
 
-  if (!is(object, "nclm"))
+  if (!inherits(object, "nclm"))
     stop("'object' must be an 'nclm' object.")
 
   check.unused.args(list(...), character(0))
@@ -112,7 +112,7 @@ predict.nclm = function(object, new.predictors, new.sensitive,
 predict.frrm = function(object, new.predictors, new.sensitive,
     type = "response", ...) {
 
-  if (!is(object, "frrm"))
+  if (!inherits(object, "frrm"))
     stop("'object' must be an 'frrm' object.")
 
   check.unused.args(list(...), character(0))
@@ -126,7 +126,7 @@ predict.frrm = function(object, new.predictors, new.sensitive,
 predict.fgrrm = function(object, new.predictors, new.sensitive,
     type = "response", ...) {
 
-  if (!is(object, "fgrrm"))
+  if (!inherits(object, "fgrrm"))
     stop("'object' must be an 'fgrrm' object.")
 
   check.unused.args(list(...), character(0))
@@ -139,7 +139,7 @@ predict.fgrrm = function(object, new.predictors, new.sensitive,
 # predict new observations for Zafar's logistic regression.
 predict.zlrm = function(object, new.predictors, type = "response", ...) {
 
-  if (!is(object, "zlrm"))
+  if (!inherits(object, "zlrm"))
     stop("'object' must be a 'zlrm' object.")
 
   # check the type of fitted values.
@@ -174,7 +174,7 @@ predict.zlrm = function(object, new.predictors, type = "response", ...) {
 # predict new observations for Zafar's linear regression.
 predict.zlm = function(object, new.predictors, type = "response", ...) {
 
-  if (!is(object, "zlm"))
+  if (!inherits(object, "zlm"))
     stop("'object' must be a 'zlm' object.")
 
   # check the type of fitted values.

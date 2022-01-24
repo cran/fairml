@@ -2,7 +2,7 @@
 # create a summary with key information from a fair model.
 summary.fair.model = function(object, ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
   check.unused.args(list(...), character(0))

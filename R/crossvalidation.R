@@ -256,9 +256,9 @@ all.unfairness = function(kcv, kcv.length, sensitive, predictors, definition) {
 # extract predictive loss values from fair.kcv and fair.kcv.list objects.
 cv.loss = function(x) {
 
-  if (is(x, "fair.kcv"))
+  if (inherits(x, "fair.kcv"))
     values = attr(x, "loss")
-  else if (is(x, "fair.kcv.list"))
+  else if (inherits(x, "fair.kcv.list"))
     values = sapply(x, function(x) attr(x, "loss"))
   else
     stop("'x' must be an object of class 'fair.kcv' or 'fair.kcv.list'.")
@@ -275,9 +275,9 @@ cv.loss = function(x) {
 # extract predictive fairness values from fair.kcv and fair.kcv.list objects.
 cv.unfairness = function(x) {
 
-  if (is(x, "fair.kcv"))
+  if (inherits(x, "fair.kcv"))
     values = attr(x, "unfairness")
-  else if (is(x, "fair.kcv.list"))
+  else if (inherits(x, "fair.kcv.list"))
     values = sapply(x, function(x) attr(x, "unfairness"))
   else
     stop("'x' must be an object of class 'fair.kcv' or 'fair.kcv.list'.")
@@ -295,12 +295,12 @@ cv.unfairness = function(x) {
 # extract the indexes of the observations in each fold.
 cv.folds = function(x) {
 
-  if (is(x, "fair.kcv")) {
+  if (inherits(x, "fair.kcv")) {
 
     folds = lapply(x, `[[`, "test")
 
   }#THEN
-  else if (is(x, "fair.kcv.list")) {
+  else if (inherits(x, "fair.kcv.list")) {
 
     folds = vector(length(x), mode = "list")
     for (i in seq_along(x))

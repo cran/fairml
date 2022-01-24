@@ -11,7 +11,7 @@ check.cluster = function(cluster) {
 
   if (missing(cluster) || is.null(cluster))
     return(NULL)
-  if (!is(cluster, "cluster"))
+  if (!inherits(cluster, "cluster"))
     stop("cluster is not a valid cluster object.")
   check.and.load.package("parallel")
   if (!isClusterRunning(cluster))

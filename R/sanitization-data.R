@@ -86,7 +86,7 @@ check.data = function(data, nobs, min.nobs = 2, varletter) {
 
     # make sure all variables are numeric or factors.
     invalid = sapply(data,
-                function(x) !is(x, "numeric") && !is(x, "factor") || is(x, "integer"))
+                function(x) !inherits(x, "numeric") && !inherits(x, "factor") || inherits(x, "integer"))
     if (any(invalid))
       stop("variables ", q(names(which(invalid))),
            " in ", q(argname), " should be numeric or factor(s).")

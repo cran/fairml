@@ -2,9 +2,9 @@
 # compare twoobjects of class fair.model.
 all.equal.fair.model = function(target, current, ...) {
 
-  if (!is(target, "fair.model"))
+  if (!inherits(target, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
-  if (!is(current, "fair.model"))
+  if (!inherits(current, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
   # do not warn about these two arguments, they are set when all.equal() methods
@@ -15,17 +15,17 @@ all.equal.fair.model = function(target, current, ...) {
 
   # are both models regression models?
   target.is.regression =
-    is(target, fair.regressions) ||
-    (is(target, fair.family) && target$main$family == "gaussian")
+    inherits(target, fair.regressions) ||
+    (inherits(target, fair.family) && target$main$family == "gaussian")
   current.is.regression =
-    is(current, fair.regressions)
-    (is(current, fair.family) && current$main$family == "gaussian")
+    inherits(current, fair.regressions)
+    (inherits(current, fair.family) && current$main$family == "gaussian")
   target.is.classifier =
-    is(target, fair.classifiers) ||
-    (is(target, fair.family) && target$main$family == "binomial")
+    inherits(target, fair.classifiers) ||
+    (inherits(target, fair.family) && target$main$family == "binomial")
   current.is.classifier =
-    is(current, fair.classifiers)
-    (is(current, fair.family) && current$main$family == "binomial")
+    inherits(current, fair.classifiers)
+    (inherits(current, fair.family) && current$main$family == "binomial")
 
   if (target.is.regression && current.is.classifier)
     differences = "'target' is a regression model, 'current' is a classifier."

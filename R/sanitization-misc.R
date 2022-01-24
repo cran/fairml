@@ -15,7 +15,7 @@ check.and.load.package = function(pkg) {
 # warn about unused arguments.
 check.unused.args = function(dots, used.args) {
 
-  if (is(dots, "list"))
+  if (inherits(dots, "list"))
     args = names(dots)
   else
     args = dots

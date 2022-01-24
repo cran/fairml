@@ -1,8 +1,8 @@
 Package: fairml
 Type: Package
 Title: Fair Models in Machine Learning
-Version: 0.6
-Date: 2021-08-09
+Version: 0.6.1
+Date: 2022-01-24
 Depends: R (>= 3.5.0)
 Imports: methods, optiSolve, CVXR, glmnet
 Suggests: lattice, parallel
@@ -16,6 +16,6 @@ Description: Fair machine learning regression models which take sensitive attrib
 License: MIT + file LICENSE
 LazyData: yes
 NeedsCompilation: no
-Packaged: 2021-08-09 16:07:28 UTC; fizban
+Packaged: 2022-01-24 20:54:22 UTC; fizban
 Repository: CRAN
-Date/Publication: 2021-08-09 16:50:02 UTC
+Date/Publication: 2022-01-24 21:22:41 UTC

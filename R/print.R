@@ -2,7 +2,7 @@
 # print a few key facts of the fair model.
 print.fair.model = function(x, digits, ...) {
 
-  if (!is(x, "fair.model"))
+  if (!inherits(x, "fair.model"))
     stop("'x' must be a 'fair.model' object.")
 
   if (missing(digits))
@@ -30,7 +30,7 @@ print.fair.model = function(x, digits, ...) {
 # print the summary of a fair model.
 print.summary.fair.model = function(x, digits, ...) {
 
-  if (!is(x, "summary.fair.model"))
+  if (!inherits(x, "summary.fair.model"))
     stop("'x' must be a 'fair.model' object.")
 
   if (missing(digits))

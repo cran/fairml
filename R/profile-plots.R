@@ -105,7 +105,7 @@ coefficients.plot = function(models, unfairness, response, legend) {
 
     # make sure the graphic device is initialized, otherwise it is impossible
     # to compute the grphical width of the labels.
-    if (is(try(strwidth(""), silent = TRUE), "try-error"))
+    if (inherits(try(strwidth(""), silent = TRUE), "try-error"))
       plot.new()
 
     label.width = strwidth(setdiff(names(coefs), "unfairness"))
@@ -270,7 +270,7 @@ variables.constraints.plot = function(definition, models, unfairness, response,
 
     # make sure the graphic device is initialized, otherwise it is impossible
     # to compute the grphical width of the labels.
-    if (is(try(strwidth(""), silent = TRUE), "try-error"))
+    if (inherits(try(strwidth(""), silent = TRUE), "try-error"))
       plot.new()
 
     label.width = strwidth(setdiff(names(constraints), "unfairness"))

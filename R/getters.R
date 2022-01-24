@@ -2,7 +2,7 @@
 # extract the coefficients.
 coef.fair.model = function(object, ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
   check.unused.args(list(...), character(0))
@@ -14,7 +14,7 @@ coef.fair.model = function(object, ...) {
 # extract the residuals.
 residuals.fair.model = function(object, ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
   check.unused.args(list(...), character(0))
@@ -26,15 +26,15 @@ residuals.fair.model = function(object, ...) {
 # extract the fitted values.
 fitted.fair.model = function(object, type = "response", ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
   # check the type of fitted values.
-  if (is(object, fair.regressions) ||
-      (is(object, fair.family) && (object$main$family == "gaussian")))
+  if (inherits(object, fair.regressions) ||
+      (inherits(object, fair.family) && (object$main$family == "gaussian")))
     check.label(type, c("response"), "fitted value type")
-  else if (is(object, fair.classifiers) ||
-            (is(object, fair.family) && (object$main$family == "binomial")))
+  else if (inherits(object, fair.classifiers) ||
+            (inherits(object, fair.family) && (object$main$family == "binomial")))
     check.label(type, c("response", "class", "link"), "fitted value type")
 
   check.unused.args(list(...), character(0))
@@ -61,7 +61,7 @@ fitted.fair.model = function(object, type = "response", ...) {
 # extract the training sample size.
 nobs.fair.model = function(object, ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
   check.unused.args(list(...), character(0))
@@ -73,7 +73,7 @@ nobs.fair.model = function(object, ...) {
 # extract the estimated standard deviation of the errors.
 sigma.fair.model = function(object, ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be a 'fair.model' object.")
 
   check.unused.args(list(...), character(0))
@@ -87,7 +87,7 @@ sigma.fair.model = function(object, ...) {
 # deviance for fair models.
 deviance.fair.model = function(object, ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be an 'fair.model' object.")
 
   check.unused.args(list(...), character(0))
@@ -98,7 +98,7 @@ deviance.fair.model = function(object, ...) {
 
 logLik.fair.model = function(object, ...) {
 
-  if (!is(object, "fair.model"))
+  if (!inherits(object, "fair.model"))
     stop("'object' must be an 'fair.model' object.")
 
   check.unused.args(list(...), character(0))
