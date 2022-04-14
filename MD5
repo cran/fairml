@@ -1,5 +1,5 @@
-8040e087a54be0adbe244d749da7f2b7 *Changelog
-8c57a3be260710cf5beacaabd2b31771 *DESCRIPTION
+7af5f289b4595df674ce7fdc37acb686 *Changelog
+e0c39d116334c6a80f58b1c60f4aef7a *DESCRIPTION
 151c2b191d1962bb006e4e10523c67ea *LICENSE
 c6020c8e35d5204d1d3dce06358a879d *NAMESPACE
 937fbe5ab24a5eda9ce0ba5c8e9a9f90 *R/comparisons.R
@@ -38,7 +38,7 @@ b313d040341fce73171b97fb27d33ec3 *man/adult.Rd
 8b9b3bc8e29cfe01eeea5180ccd0fa0d *man/bank.Rd
 49d83af9ff3bdeb5cffecb99ff5f79d1 *man/communities.and.crime.Rd
 d8abf2d3c0cc1c98e02ca295b02d57d7 *man/compas.Rd
-d4efe98f37bb990d46638fcb68670d3b *man/fairml-package.Rd
+f8792682c99d23bff2cdd5c32b70f1c1 *man/fairml-package.Rd
 23b74fdfd61891ac23d8ecd2d198684b *man/fairml.cv.Rd
 62b746dda3a30ff0f7d6923313b89a67 *man/fairness.profile.plot.Rd
 5ecbaafc2274c41cfddebcdac775f7f2 *man/frrm.Rd

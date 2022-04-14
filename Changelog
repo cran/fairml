@@ -1,3 +1,11 @@
+fairml (0.6.2)
+
+  * changed the maintainer email.
+
+fairml (0.6.1)
+
+  * fixed conditionals involving is() vs inherit().
+
 fairml (0.6)
 
   * preliminary implementation of a linear regression model with the fairness
