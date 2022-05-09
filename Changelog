@@ -1,3 +1,11 @@
+fairml (0.6.3)
+
+  * fixed predict() with just a single predictor variable (thanks Florian 
+     Pfisterer).
+  * better error message when the column names of predictors and sensitive
+     attributes result in clashes in the respective design matrices (thanks
+     Florian Pfisterer).
+
 fairml (0.6.2)
 
   * changed the maintainer email.

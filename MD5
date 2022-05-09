@@ -1,5 +1,5 @@
-7af5f289b4595df674ce7fdc37acb686 *Changelog
-e0c39d116334c6a80f58b1c60f4aef7a *DESCRIPTION
+70423ceff5021af48c55b34c526a8521 *Changelog
+8194d94a2c2a5505c0bd6577abc0504f *DESCRIPTION
 151c2b191d1962bb006e4e10523c67ea *LICENSE
 c6020c8e35d5204d1d3dce06358a879d *NAMESPACE
 937fbe5ab24a5eda9ce0ba5c8e9a9f90 *R/comparisons.R
@@ -21,7 +21,7 @@ af04c57cab2d2c8b73eabdd9e0c5a10f *R/sanitization-data.R
 92429c15dba2f76cb915f3e5708fd404 *R/sanitization-misc.R
 0f5395abd9c53176f99128697a853acf *R/sanitization-types.R
 a3b3a6938cbb7c91b666448bd9cb76e9 *R/summary.R
-919b77ec100af4a4c6038cdd0df109e9 *R/two-stage-regression.R
+9bac40ccfab40974e9256b9d334f7366 *R/two-stage-regression.R
 0ac6edb8607b7dd55154514bea53c374 *R/utils.R
 e709c3ace7131cb2fde46e39b6fcde50 *R/zlm.R
 e339d7f257acbf3e0d3fbdf99fa146e5 *R/zlrm.R

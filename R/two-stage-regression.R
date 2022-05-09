@@ -37,6 +37,11 @@ two.stage.regression = function(model, family, response, predictors, sensitive,
   check.logical(save.auxiliary)
   lambda = check.ridge.penalty(lambda)
 
+  # check that there are no duplicate variable names in the original data.
+  duplicate.names = intersect(colnames(predictors), colnames(sensitive))
+  if (length(duplicate.names) != 0)
+    stop("duplicate variable names in the data: ", q(duplicate.names), ".")
+
   # save some information on the data, to be used e.g. in predict().
   response.info = get.data.info(data.frame(response = response))
   predictors.info = get.data.info(predictors)
@@ -49,17 +54,17 @@ two.stage.regression = function(model, family, response, predictors, sensitive,
   #      later in the auxiliary model).
   predictors = design.matrix(predictors, intercept = FALSE)
   sensitive = design.matrix(sensitive, intercept = FALSE)
+  # check that there are no duplicate names in the design matrices.
+  duplicate.names = intersect(colnames(predictors), colnames(sensitive))
+  if (length(duplicate.names) != 0)
+    stop("duplicate variable names in the design matrices: ",
+         q(duplicate.names), ".")
   # regress the predictors against the sensitive attributes to contruct U, the
   # matrix of non-sensitive variables.
   auxiliary.model = lm(predictors ~ ., data = data.frame(sensitive))
   U = predictors - fitted(auxiliary.model)
   # remove the intercept from the sensitive attributes, it is no longer needed.
   sensitive = sensitive[, colnames(sensitive) != "(Intercept)", drop = FALSE]
-
-  # check that there are no duplicate names.
-  duplicate.names = intersect(colnames(U), colnames(sensitive))
-  if (length(duplicate.names) != 0)
-    stop("duplicate variable names: ", paste(duplicate.names, collapse = " "), ".")
 
   if (model == "nclm") {
 
@@ -91,8 +96,18 @@ two.stage.regression = function(model, family, response, predictors, sensitive,
   }#THEN
 
   # collect all the information about the model...
+  auxiliary.coefs = coef(auxiliary.model)
+
+  if (ncol(predictors) == 1) {
+
+    auxiliary.coefs =
+      matrix(auxiliary.coefs, ncol = 1,
+             dimnames = list(names(auxiliary.coefs), colnames(predictors)))
+  }#THEN
+
   auxiliary.info = list(call = auxiliary.model$call,
-                     coefficients = coef(auxiliary.model))
+                        coefficients = auxiliary.coefs)
+
   # ... and optionally on the data that will be fed to the main model.
   if (save.auxiliary) {
 
