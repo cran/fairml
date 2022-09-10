@@ -1,9 +1,9 @@
-70423ceff5021af48c55b34c526a8521 *Changelog
-8194d94a2c2a5505c0bd6577abc0504f *DESCRIPTION
+a7fd62f37928929a5660acfff7ef187c *Changelog
+5214cdbff360b0816006ab93f30044c3 *DESCRIPTION
 151c2b191d1962bb006e4e10523c67ea *LICENSE
 c6020c8e35d5204d1d3dce06358a879d *NAMESPACE
 937fbe5ab24a5eda9ce0ba5c8e9a9f90 *R/comparisons.R
-6c7a16452d72a2f1ffd2f4576148fd43 *R/crossvalidation.R
+73ae33af19130d1eaf8a276b651c9e35 *R/crossvalidation.R
 39282a16998c73741e29ae2886508734 *R/diagnostic-plots.R
 6d24e0b43a38896c8ea0f4e422f60732 *R/fgrrm.R
 bdf392f1f140ab6f484862897c3ff851 *R/frrm.R
@@ -17,7 +17,7 @@ a4c8cbe2068d2e197f90538cee6ef588 *R/parallel.R
 dca959290a27e110a8c6173071fd5792 *R/profile-plots.R
 cc462f2aff4bf2ee38c35b464f62c483 *R/sanitization-arguments.R
 25f42cbfde5706b294f75f00879bf2e4 *R/sanitization-cv.R
-af04c57cab2d2c8b73eabdd9e0c5a10f *R/sanitization-data.R
+43393c970f316095976a67d871da372f *R/sanitization-data.R
 92429c15dba2f76cb915f3e5708fd404 *R/sanitization-misc.R
 0f5395abd9c53176f99128697a853acf *R/sanitization-types.R
 a3b3a6938cbb7c91b666448bd9cb76e9 *R/summary.R

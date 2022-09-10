@@ -1,3 +1,11 @@
+fairml (0.7)
+
+  * fixed the computation of precision and recall in fairml.cv() (thanks
+     Francesca Panero).
+  * when computing precision and recall in fairml.cv(), the first class of the
+     response is the "negative" class and the second is the "positive" class,
+     not the other way round (thanks Francesca Panero).
+
 fairml (0.6.3)
 
   * fixed predict() with just a single predictor variable (thanks Florian 

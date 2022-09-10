@@ -211,4 +211,4 @@ check.data.vs.info = function(data, info) {
 
   return(data)
 
-}#CHECK.DATA.VS.MODEL
+}#CHECK.DATA.VS.INFO

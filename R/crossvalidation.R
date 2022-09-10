@@ -336,11 +336,13 @@ pr.loss = function(observed, predicted) {
 
   # compute the confusion matrix, which is what all performance measures in
   # classification are computed from.
-  confusion.matrix = table(predicted, observed)
+  confusion.matrix = table(observed, predicted)
 
-  tp = confusion.matrix[1, 1] + confusion.matrix[2, 2]
-  fp = confusion.matrix[2, 1]
-  fn = confusion.matrix[1, 2]
+  # by convention, the "positive" class is the second level of the response
+  # variable, and the first is the "negative" class
+  tp = confusion.matrix[2, 2]
+  fp = confusion.matrix[1, 2]
+  fn = confusion.matrix[2, 1]
 
   # the loss functions are precision and recall.
   return(c(precision = 1 - fp / (fp + tp), recall = tp / (tp + fn)))
