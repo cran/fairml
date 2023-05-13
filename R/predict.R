@@ -11,7 +11,14 @@ predict.fair.model = function(object, ...) {
 
 }#PREDICT.FAIR.MODELS
 
-predict.two.stages = function(object, new.predictors, new.sensitive, type) {
+two.stages.prediction = function(object, new.predictors, new.sensitive, type) {
+
+  # extract the coefficients of the main model and their labels.
+  coefs = coef(object)
+  if (is.matrix(coefs))
+    coef.names = rownames(coefs)
+  else
+    coef.names = names(coefs)
 
   # check the predictors and the sensitive attributes.
   new.predictors = check.data(new.predictors, min.nobs = 1, varletter = "X")
@@ -24,7 +31,8 @@ predict.two.stages = function(object, new.predictors, new.sensitive, type) {
   # use the auxiliary model fitted on the training data to construct the U
   # matrix for the test data, the decorrelated predictors.
   new.predictors = design.matrix(new.predictors, intercept = FALSE)
-  new.sensitive = design.matrix(new.sensitive)
+  new.sensitive =
+    design.matrix(new.sensitive, intercept = ("(Intercept)" %in% coef.names))
 
   auxiliary.coefs =
     object$auxiliary$coefficients[colnames(new.sensitive), , drop = FALSE]
@@ -34,44 +42,81 @@ predict.two.stages = function(object, new.predictors, new.sensitive, type) {
   # merge sensitive attributes and decorrelated predictors.
   newdata = as.matrix(cbind(new.sensitive, newU))
 
-  # extract the coefficients of the main model.
-  coefs = coef(object)
-
   # check that they match with the variables, and that they appear in the same
   # order.
-  if (!setequal(colnames(newdata), names(coefs)))
+  if (!setequal(colnames(newdata), coef.names))
     stop("'new.predictors' or 'new.sensitive' have different variables than the model.")
-  if (any(colnames(newdata) != names(coefs)))
-    newdata = newdata[, names(coefs)]
+  if (any(colnames(newdata) != coef.names))
+    newdata = newdata[, coef.names]
 
-  linear.predictor = as.vector(newdata %*% coefs)
-
-  if (inherits(object, fair.regressions) ||
-      (inherits(object, fair.family) && (object$main$family == "gaussian"))) {
-
-    # check the type of fitted values.
+  # check the type of prediction.
+  if (inherits(object, fair.regressions))
     check.label(type, c("response", "link"), "prediction type")
+  else if (inherits(object, fair.classifiers))
+    check.label(type, c("response", "class", "link"), "prediction type")
+  else if (inherits(object, fair.family)) {
+
+    if (object$main$family == "gaussian")
+      check.label(type, c("response", "link"), "prediction type")
+    else if (object$main$family == "binomial")
+      check.label(type, c("response", "class", "link"), "prediction type")
+    else if (object$main$family %in% c("poisson", "cox"))
+      check.label(type, c("response", "link"), "prediction type")
+
+  }#THEN
+
+  if (is.matrix(coefs))
+    linear.predictor = noattr(newdata %*% coefs)
+  else
+    linear.predictor = as.vector(newdata %*% coefs)
+
+  if (inherits(object, fair.regressions)) {
 
     return(linear.predictor)
 
   }#THEN
-  else if (inherits(object, fair.classifiers) ||
-           (inherits(object, fair.family) && (object$main$family == "binomial"))) {
-
-    # check the type of fitted values.
-    check.label(type, c("response", "class", "link"), "prediction type")
+  else if (inherits(object, fair.classifiers)) {
 
     return(classifier.prediction(linear.predictor, type = type,
              labels = object$data$response$levels[["response"]]))
 
   }#THEN
+  else if (inherits(object, fair.family)) {
 
-}#PREDICT.TWO.STAGES
+    if (object$main$family == "gaussian") {
 
+      return(linear.predictor)
+
+    }#THEN
+    else if (object$main$family %in% c("binomial", "multinomial")) {
+
+      return(classifier.prediction(linear.predictor, type = type,
+               labels = object$data$response$levels[["response"]]))
+
+    }#THEN
+    else if (object$main$family == "poisson") {
+
+      if (type == "link")
+        return(linear.predictor)
+      else if (type == "response")
+        return(exp(linear.predictor))
+
+    }#THEN
+    else if (object$main$family == "cox") {
+
+      if (type == "link")
+        return(linear.predictor)
+      else if (type == "response")
+        return(exp(-linear.predictor))
+
+    }#THEN
+
+  }#THEN
+
+}#TWO.STAGES.PREDICTION
+
+# produce different types of predictions from classifiers.
 classifier.prediction = function(linear.predictor, type, labels) {
-
-  # compute the probability of success.
-  probs = 1 / (1 + exp(-linear.predictor))
 
   if (type == "link") {
 
@@ -82,13 +127,19 @@ classifier.prediction = function(linear.predictor, type, labels) {
   else if (type == "response") {
 
     # predict the probability of success.
-    return(probs)
+    if (is.matrix(linear.predictor))
+      return(linpred2mprob(linear.predictor))
+    else
+      return(linpred2prob(linear.predictor))
 
   }#THEN
   else if (type == "class") {
 
     # predict the class label.
-    return(prob2class(probs, labels = labels))
+    if (is.matrix(linear.predictor))
+      return(linpred2mclass(linear.predictor, labels = labels))
+    else
+      return(linpred2class(linear.predictor, labels = labels))
 
   }#THEN
 
@@ -103,7 +154,7 @@ predict.nclm = function(object, new.predictors, new.sensitive,
 
   check.unused.args(list(...), character(0))
 
-  predict.two.stages(object = object, new.predictors = new.predictors,
+  two.stages.prediction(object = object, new.predictors = new.predictors,
     new.sensitive = new.sensitive, type = type)
 
 }#PREDICT.NCLM
@@ -117,7 +168,7 @@ predict.frrm = function(object, new.predictors, new.sensitive,
 
   check.unused.args(list(...), character(0))
 
-  predict.two.stages(object = object, new.predictors = new.predictors,
+  two.stages.prediction(object = object, new.predictors = new.predictors,
     new.sensitive = new.sensitive, type = type)
 
 }#PREDICT.FRRM
@@ -131,7 +182,7 @@ predict.fgrrm = function(object, new.predictors, new.sensitive,
 
   check.unused.args(list(...), character(0))
 
-  predict.two.stages(object = object, new.predictors = new.predictors,
+  two.stages.prediction(object = object, new.predictors = new.predictors,
     new.sensitive = new.sensitive, type = type)
 
 }#PREDICT.FGRRM

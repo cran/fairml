@@ -41,6 +41,41 @@ data(bank)
   In that paper, \code{subscribed} is the response variable, \code{age} is the
   sensitive attribute and the remaining variables are used as predictors.
 
+  The data contains the following variables:
+
+  \itemize{
+
+    \item \code{age} as a numeric variable;
+    \item \code{job}, a factor with 12 levels ranging from \code{"blue-collar"}
+      to \code{"services"};
+    \item \code{marital}, a factor with levels \code{"divorced"},
+      \code{"married"}, \code{"single"} and \code{"unknown"};
+    \item \code{education}, a factor with 8 levels ranging from
+      \code{"basic.4y"} to \code{"university.degree"};
+    \item \code{default}, a factor with levels \code{"no"} and \code{"unknown"};
+    \item \code{housing}, a factor with levels \code{"yes"} and \code{"no"};
+    \item \code{loan}, a factor with levels \code{"yes"} and \code{"no"};
+    \item \code{contact}, a factor with levels \code{"cellular"} and
+      \code{"telephone"};
+    \item \code{month}, a factor with 12 levels for the months of the year;
+    \item \code{day_of_week}, a factor with 7 levels for the days of the week;
+    \item \code{campaign}, the number of contacts performed during this
+      campaign;
+    \item \code{previous}, the number of contacts performed before this
+      campaign;
+    \item \code{poutcome}, a factor with levels \code{"failure"},
+      \code{"nonexistent"} and \code{"success"};
+    \item \code{emp_var_rate}, the (numeric) quarterly employment variation
+      rate;
+    \item \code{cons_price_idx}, the (numeric) monthly consumer price index;
+    \item \code{cons_conf_idx}, the (numeric) monthly consumer confidence index;
+    \item \code{euribor3m}, the (numeric) euribor 3-month rate;
+    \item \code{nr_employed}, a numeric variable with the number of employees
+      in the company in that quarter;
+    \item \code{subscribed}, a factor with levels \code{"yes"} and \code{"no"}.
+
+  }
+
 }
 \references{
 

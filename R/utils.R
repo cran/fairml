@@ -22,19 +22,60 @@ wcat = function(header, value) {
 
 }#WCAT
 
-# transform a classification probability into a binary class factor.
-prob2class = function(prob, labels) {
+# remove extraneous attributes.
+noattr = function(x, ok) {
 
-  factor(prob > 0.5, levels = c("FALSE", "TRUE"), labels = labels)
+  if (missing(ok))
+    if (is.matrix(x))
+      ok = c("dim", "dimnames")
+    else if (is.factor(x))
+      ok = c("class", "levels")
+    else
+      ok = character(0)
 
-}#PROB2CLASS
+  x.attr = attributes(x)
+  attributes(x) = x.attr[names(x.attr) %in% ok]
 
-# transform a classification probability into the linear component of the model.
-prob2link = function(prob) {
+  return(x)
 
-  log(prob / (1 - prob))
+}#NOATTR
 
-}#PROB2LINK
+# transform the linear predictor into a classification probability.
+linpred2prob = function(linear.predictor) {
+
+  as.numeric(1 / (1 + exp(-linear.predictor)))
+
+}#LINPRED2PROB
+
+# transform the linear predictor into a binary-class factor.
+linpred2class = function(linear.predictor, labels) {
+
+  probs = linpred2prob(linear.predictor)
+
+  factor(probs > 0.5, levels = c("FALSE", "TRUE"), labels = labels)
+
+}#LINPRED2CLASS
+
+# transform a linear predictor into multinomial probabilities.
+linpred2mprob = function(linear.predictor) {
+
+  probs = exp(linear.predictor)
+  normalizing.constant = rowSums(probs)
+  for (i in seq(ncol(probs)))
+    probs[, i] = probs[, i] / normalizing.constant
+
+  return(probs)
+
+}#LINPRED2MPROB
+
+# transform a linear predictor into a multiple-class factor.
+linpred2mclass = function(linear.predictor, labels) {
+
+  probs = linpred2mprob(linear.predictor)
+  best.class = apply(probs, 1, which.max)
+  factor(labels[best.class], levels = labels)
+
+}#LINPRED2MCLASS
 
 # range of values to plot over, with a bit of white space on either side.
 extended.range = function(values, by = 0.05) {
@@ -43,17 +84,27 @@ extended.range = function(values, by = 0.05) {
 
 }#EXTENDED.RANGE
 
-# loglikelihood of a linear regression model.
-linear.model.loglikelihood = function(residuals, p) {
-
-  nobs = length(residuals)
+# log-likelihood of a linear regression model.
+lm.loglikelihood = function(residuals) {
 
   # this is what logLik.lm() does.
-  value = 0.5 * ( - nobs * (log(2 * pi) + 1 - log(nobs) + log(sum(residuals^2))))
+  nobs = length(residuals)
+  value = 0.5 * ( - nobs * (log(2 * pi) + 1 - log(nobs) +
+                              log(sum(residuals^2))))
 
-  return(structure(value, nobs = nobs, df = p + 1, class = "logLik"))
+  return(value)
 
-}#LINEAR.MODEL.LOGLIKELIHOOD
+}#LM.LOGLIKELIHOOD
+
+# any proportion of nothing is nothing.
+proportion = function(x, tot) {
+
+  if (tot == 0)
+    return(0)
+  else
+    return(x / tot)
+
+}#PROPORTION
 
 # wrap cor() so that it handles zero-variance variables.
 safe.cor = function(x, y) {
@@ -61,3 +112,25 @@ safe.cor = function(x, y) {
   suppressWarnings(cor(x, y))
 
 }#SAFE.COR
+
+# count the number of observations in a vector or in tabular data.
+sample.size = function(sample) {
+
+  if (is.null(dim(sample)))
+    return(length(sample))
+  else if (is.matrix(sample) || is.data.frame(sample))
+    return(nrow(sample))
+
+}#SAMPLE.SIZE
+
+# explode a factor into a matrix of indicators, one column per leve.
+class.ind = function(cl) {
+
+  n = length(cl)
+  indicators = matrix(0, n, nlevels(cl))
+  indicators[seq(n) + n * (unclass(cl) - 1)] = 1
+
+  return(indicators)
+
+}#CLASS.IND
+

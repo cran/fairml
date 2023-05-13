@@ -5,14 +5,12 @@ check.response = function(response, model, family, min.nobs = 2) {
   if (missing(response))
     stop("'response' is missing.")
 
-  if ((model %in% fair.regressions) ||
-      ((model %in% fair.family) && !missing(family) && (family == "gaussian"))) {
+  if (model %in% fair.regressions) {
 
+    # make sure the response is a real vector.
+    response = as.vector(response)
     if (!is.real.vector(response))
       stop("'response' should be a numeric vector.")
-
-    # make sure the response is a vector.
-    response = as.vector(response)
 
     # do not allow a zero-variance response if later we try to standardize it.
     if (min.nobs > 1)
@@ -20,11 +18,82 @@ check.response = function(response, model, family, min.nobs = 2) {
         stop("'response' has variance zero, it cannot be standardized.")
 
   }#THEN
-  else if ((model %in% fair.classifiers) ||
-           ((model %in% fair.family) && !missing(family) && (family == "binomial"))) {
+  else if (model %in% fair.classifiers) {
 
     if (!is.factor(response) || (nlevels(response) != 2))
       stop("'response' should be a factor with two levels.")
+
+  }#THEN
+  else if (model %in% fair.family) {
+
+    if (missing(family))
+      stop("'family' is missing.")
+
+    if (family == "gaussian") {
+
+      response = as.vector(response)
+      if (!is.real.vector(response))
+        stop("'response' should be a numeric vector.")
+
+      # do not allow a zero-variance response if later we try to standardize it.
+      if (min.nobs > 1)
+        if (var(response) < sqrt(.Machine$double.eps))
+          stop("'response' has variance zero, it cannot be standardized.")
+
+    }#THEN
+    else if (family == "binomial") {
+
+      if (!is.factor(response) || (nlevels(response) != 2))
+        stop("'response' should be a factor with two levels.")
+      if (!all(table(response) > 0))
+        stop("'response' only takes one of its two possible values.")
+
+    }#THEN
+    else if (family == "poisson") {
+
+      response = as.vector(response)
+      if (!is.non.negative.vector(response))
+        stop("'response' should be a non-negative vector.")
+
+      # make sure the respone is integer.
+      response = round(response)
+
+    }#THEN
+    else if (family == "cox") {
+
+      # make sure that the response is a two-column matrix with column names.
+      if (is.data.frame(response))
+        response = as.matrix(response)
+      if (!is.matrix(response)) {
+
+        if (!identical(length(dim(response)), 2) || (ncol(response) != 2))
+          stop("'response' should be a matrix with columns 'time' and 'status'.")
+        if (is.null(colnames(response)))
+          colnames(response) = c("time", "status")
+        else if (!identical(colnames(response), c("time", "status")))
+          stop("'response' should be a matrix with columns 'time' and 'status'.")
+
+      }#THEN
+
+      # make sure that the times are positive.
+      if (!is.positive.vector(response[, "time"]))
+        stop("the 'time' in 'response' should be strictly positive.")
+      # make sure that the censoring indicators are binary.
+      if (!is.binary.vector(response[, "status"]))
+        stop("the 'status' in 'response' should be a binary {0, 1} vector.")
+      # make sure that not all observations are censored.
+      if (all(response[, "status"] == 0))
+        stop("all the observations are censored ('status' equal to zero).")
+
+    }#THEN
+    else if (family == "multinomial") {
+
+      if (!is.factor(response) || (nlevels(response) < 2))
+        stop("'response' should be a factor with at least two levels.")
+      if (!all(table(response) > 0))
+        stop("not all values of 'response' are observed.")
+
+    }#THEN
 
   }#THEN
 
@@ -33,7 +102,7 @@ check.response = function(response, model, family, min.nobs = 2) {
     stop("'response' contains missing values.")
 
   # check the minimum sample size.
-  if (length(response) < min.nobs)
+  if (sample.size(response) < min.nobs)
     stop("'response' should contain at least ", min.nobs, " observations.")
 
   return(response)

@@ -21,12 +21,12 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
     model allowed to be. The default value is \code{seq(from = 0.00, to = 1,
     by = 0.02)}.}
   \item{legend}{a logical value, whether to add a legend to the plot.}
-  \item{type}{a character string, either \code{"coefficients"} (the default) or
-    \code{"constraints"}.}
+  \item{type}{a character string, either \code{"coefficients"} (the default),
+    \code{"constraints"},  \code{"precision-recall"} or \code{"rmse"}.}
   \item{model}{a character string, the label of the model. Currently
     \code{"nclm"}, \code{"frrm"}, \code{"fgrrm"}, \code{"zlm"} and \code{"zlrm"}
     are available.}
-  \item{model.args}{additional arguments passed to the model.}
+  \item{model.args}{additional arguments passed to model estimation.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}, to
     fit models in parallel.}
 }
@@ -69,7 +69,11 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
 
     }
 
-    \item For model \code{"fgrrm"}: same as for \code{"frrm"} with the same
+    \item For model \code{"frrm"} with \code{definition = "if-berk"}, the ratio
+      between the individual fairness loss computed for a given values of the
+      constraint and that of the unrestricted model with \code{unfairness = 1}.
+
+    \item For model \code{"fgrrm"}: same as for \code{"frrm"} for each
       \code{definition}.
 
     \item For models \code{"zlm"} and \code{"zlrm"}: the correlations between
@@ -93,20 +97,20 @@ fairness.profile.plot(response, predictors, sensitive, unfairness,
 
 }
 \examples{
-data(vur.test)
-fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, type = "coefficients", model = "nclm", legend = TRUE)
-fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, type = "constraints", model = "nclm", legend = TRUE)
-fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, type = "rmse", model = "nclm", legend = TRUE)
+data(vu.test)
+fairness.profile.plot(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, type = "coefficients", model = "nclm", legend = TRUE)
+fairness.profile.plot(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, type = "constraints", model = "nclm", legend = TRUE)
+fairness.profile.plot(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, type = "rmse", model = "nclm", legend = TRUE)
 
 # profile plots fitting models in parallel.
 \dontrun{
 library(parallel)
 cl = makeCluster(2)
-fairness.profile.plot(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, model = "nclm", cluster = cl)
+fairness.profile.plot(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, model = "nclm", cluster = cl)
 stopCluster(cl)
 }}
 \author{Marco Scutari}

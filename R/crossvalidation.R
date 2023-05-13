@@ -6,16 +6,16 @@ fairml.cv = function(response, predictors, sensitive, method = "k-fold", ...,
   # check the model to be fitted.
   check.label(model, fair.models, "model")
 
-  # check arguments common to all models.
-  response = check.response(response, model = model)
-  n = length(response)
-  predictors = check.data(predictors, nobs = n, varletter = "X")
-  sensitive = check.data(sensitive, nobs = n, varletter = "S")
-  check.fairness.level(unfairness)
-
   # remove optional arguments that do not belong after warning.
   check.unused.args(model.args, fair.models.extra.args[[model]])
   model.args = model.args[names(model.args) %in% fair.models.extra.args[[model]]]
+
+  # check arguments common to all models.
+  response = check.response(response, model = model, family = model.args$family)
+  n = sample.size(response)
+  predictors = check.data(predictors, nobs = n, varletter = "X")
+  sensitive = check.data(sensitive, nobs = n, varletter = "S")
+  check.fairness.level(unfairness)
 
   # check the cross-validation method.
   check.label(method, available.cv.methods, 'method')
@@ -86,8 +86,8 @@ fairml.cv = function(response, predictors, sensitive, method = "k-fold", ...,
     }#ELSE
 
     overall.unfairness =
-      all.unfairness(kcv = kcv, kcv.length = kcv.length, sensitive = sensitive,
-        predictors = predictors, definition = definition)
+      overall.unfairness(kcv = kcv, kcv.length = kcv.length,
+        sensitive = sensitive, predictors = predictors, definition = definition)
 
     # reset the names of the elements of the return value.
     names(kcv) = NULL
@@ -112,10 +112,16 @@ compute.loss.from.split = function(test, response, predictors, sensitive,
     unfairness, model, model.args) {
 
   # create the training and test sets.
-  train.response = response[-test]
+  if (is.matrix(response))
+    train.response = response[-test, , drop = FALSE]
+  else
+    train.response = response[-test]
   train.predictors = predictors[-test, , drop = FALSE]
   train.sensitive = sensitive[-test, , drop = FALSE]
-  test.response = response[test]
+  if (is.matrix(response))
+    test.response = response[test, , drop = FALSE]
+  else
+    test.response = response[test]
   test.predictors = predictors[test, , drop = FALSE]
   test.sensitive = sensitive[test, , drop = FALSE]
 
@@ -129,9 +135,9 @@ compute.loss.from.split = function(test, response, predictors, sensitive,
   # find out what family the model belongs to.
   family = fitted$main$family
 
-  if (family == "gaussian")
+  if (family %in% c("gaussian", "poisson", "cox"))
     type = "response"
-  else if (family == "binomial")
+  else if (family %in% c("binomial", "multinomial"))
     type = "class"
 
   # predict the values on the test set.
@@ -166,7 +172,8 @@ fold.unfairness = function(fitted, predictors, sensitive, response, test) {
   definition = fitted$fairness$definition
   family = fitted$main$family
 
-  if (definition %in% c("sp-komiyama", "eo-komiyama")) {
+  if (is.function(definition) ||
+      definition %in% c("sp-komiyama", "eo-komiyama", "if-berk")) {
 
     # create the uncorrelated predictors and the design matrix of the sensitive
     # attributes, as well as subsetting the response.
@@ -175,12 +182,26 @@ fold.unfairness = function(fitted, predictors, sensitive, response, test) {
     sensitive.design = design.matrix(sensitive)[test, , drop = FALSE]
     decorrelated.predictors =
       predictors.design - sensitive.design %*% fitted$auxiliary$coefficients
-    test.response = response[test]
+    if (is.matrix(response))
+      test.response = response[test, , drop = FALSE]
+    else
+      test.response = response[test]
 
-    if (definition == "sp-komiyama") {
+    model = list(coefficients = fitted$main$coefficients,
+                 lambda = fitted$main$arguments$lambda)
+
+    if (is.function(definition)) {
 
       unfairness =
-        fgrrm.sp.komiyama(model = coef(fitted), y = test.response,
+        definition(model = model, y = test.response,
+          S = sensitive.design, U = decorrelated.predictors,
+          family = family)["value"]
+
+    }#THEN
+    else if (definition == "sp-komiyama") {
+
+      unfairness =
+        fgrrm.sp.komiyama(model = model, y = test.response,
           S = sensitive.design, U = decorrelated.predictors,
           family = family)["value"]
 
@@ -188,7 +209,15 @@ fold.unfairness = function(fitted, predictors, sensitive, response, test) {
     else if (definition == "eo-komiyama") {
 
       unfairness =
-        fgrrm.eo.komiyama(model = coef(fitted), y = test.response,
+        fgrrm.eo.komiyama(model = model, y = test.response,
+          S = sensitive.design, U = decorrelated.predictors,
+          family = family)["value"]
+
+    }#THEN
+    else if (definition == "if-berk") {
+
+      unfairness =
+        fgrrm.if.berk(model = model, y = test.response,
           S = sensitive.design, U = decorrelated.predictors,
           family = family)["value"]
 
@@ -207,18 +236,23 @@ fold.unfairness = function(fitted, predictors, sensitive, response, test) {
 
   }#THEN
 
-  return(structure(unfairness, names = definition))
+  if (is.function(definition))
+    return(structure(unfairness, names = "custom"))
+  else
+    return(structure(unfairness, names = definition))
 
 }#FOLD.UNFAIRNESS
 
 # unfairness measured on the whole data set.
-all.unfairness = function(kcv, kcv.length, sensitive, predictors, definition) {
+overall.unfairness = function(kcv, kcv.length, sensitive, predictors,
+    definition) {
 
-  if (definition %in% c("sp-komiyama", "eo-komiyama")) {
+  if (is.function(definition) ||
+      definition %in% c("sp-komiyama", "eo-komiyama", "if-berk")) {
 
     fold.unfairness = sapply(kcv, `[[`, "unfairness")
     unfairness = weighted.mean(fold.unfairness, kcv.length)
-    names(unfairness) = definition
+    names(unfairness) = ifelse(is.function(definition), "custom", definition)
 
   }#THEN
   else if (definition == "sp-zafar-disparate-impact") {
@@ -251,7 +285,7 @@ all.unfairness = function(kcv, kcv.length, sensitive, predictors, definition) {
 
   return(unfairness)
 
-}#ALL.UNFAIRNESS
+}#OVERALL.UNFAIRNESS
 
 # extract predictive loss values from fair.kcv and fair.kcv.list objects.
 cv.loss = function(x) {
@@ -317,9 +351,9 @@ cv.folds = function(x) {
 # pick the right loss function for the model's family.
 family.loss = function(observed, predicted, family) {
 
-  if (family == "gaussian")
+  if (family %in% c("gaussian", "poisson", "cox"))
     rmse.loss(observed = observed, predicted = predicted)
-  else if (family == "binomial")
+  else if (family %in% c("binomial", "multinomial"))
     pr.loss(observed = observed, predicted = predicted)
 
 }#FAMILY.LOSS
@@ -344,7 +378,27 @@ pr.loss = function(observed, predicted) {
   fp = confusion.matrix[1, 2]
   fn = confusion.matrix[2, 1]
 
+  # cover degenerate cases in which precision and recall would otherwise be NA.
+  if ((tp == 0) && (fp == 0) && (fn == 0)) {
+
+    precision = 1
+    recall = 1
+
+  }#THEN
+  else if ((tp == 0) && ((fp > 0) || (fn > 0))) {
+
+    precision = 0
+    recall = 0
+
+  }#THEN
+  else {
+
+    precision = 1 - fp / (fp + tp)
+    recall = tp / (tp + fn)
+
+  }#ELSE
+
   # the loss functions are precision and recall.
-  return(c(precision = 1 - fp / (fp + tp), recall = tp / (tp + fn)))
+  return(c(precision = precision, recall = recall))
 
 }#PR.LOSS

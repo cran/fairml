@@ -1,6 +1,6 @@
 export(
   # models.
-  "nclm", "frrm", "fgrrm", "zlm", "zlrm",
+  "nclm", "frrm", "fgrrm", "zlm", "zlm.orig", "zlrm", "zlrm.orig",
   # training and benchmarking models.
   "fairml.cv", "cv.loss", "cv.unfairness", "cv.folds",
   # diagnostic plots.
@@ -10,15 +10,12 @@ export(
 importFrom("methods", "is")
 importFrom("stats", "var", "sd", "cov", "cor", "coef", "residuals", "fitted",
   "sigma", "deviance", "nobs", "lm", "model.frame", "model.matrix", "formula",
-  "predict", "weighted.mean", "optimize", "anova", "glm", "logLik")
-importFrom("optiSolve", "cop", "solvecop", "linfun", "quadfun", "quadcon",
-  "validate")
+  "predict", "weighted.mean", "optimize", "anova", "glm", "logLik", "dbinom",
+  "dnorm", "dpois")
 importFrom("glmnet", "glmnet")
 importFrom("grDevices", "dev.cur")
 importFrom("graphics", "plot.new", "strwidth")
 importFrom("parallel", "parSapplyLB", "clusterEvalQ")
-
-import("CVXR")
 
 S3method(predict, "nclm")
 S3method(predict, "frrm")

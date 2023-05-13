@@ -42,7 +42,32 @@ check.covariance.matrix = function(covmat, nvars, what) {
 
 }#CHECK.COVARIANCE.MATRIX
 
-# check the unfairness tuning parameter.
+# check the fairness definition used for the constraint.
+check.fairness.constraint = function(definition, model, family) {
+
+  if (missing(definition))
+    stop("no fairness definition has been specified.")
+  else if (is.function(definition)) {
+
+    # custom fairness definition passed as a function.
+    fun.arguments = names(formals(definition))
+    if (!identical(fun.arguments, c("model", "y", "S", "U", "family")))
+      stop("the custom score function must have signature function(model, y, S, U, family).")
+
+  }#THEN
+  else {
+
+    # built-in fairness definitions identified by a label.
+    check.label(definition, available.fairness.definitions,
+      "definition of fairness")
+    check.label(definition, fairness.definitions.for.model[[model]],
+      "definition of fairness")
+
+  }#THEN
+
+}#CHECK.FAIRNESS.CONSTRAINT
+
+# check the unfairness proportion tuning parameter.
 check.fairness.level = function(unfairness, scalar = TRUE) {
 
   if (scalar) {
@@ -66,6 +91,14 @@ check.fairness.level = function(unfairness, scalar = TRUE) {
 
 }#CHECK.FAIRNESS.LEVEL
 
+# check an absolute correlation coefficient fairness constraint.
+check.absolute.covariance = function(unfairness) {
+
+  if (missing(unfairness) || !is.non.negative(unfairness))
+    stop("'max.abs.cov' should be a single non-negative number.")
+
+}#CHECK.ABSOLUTE.COVARIANCE
+
 # check the lambda penalty coefficient used for regularisation.
 check.ridge.penalty = function(lambda) {
 
@@ -77,3 +110,15 @@ check.ridge.penalty = function(lambda) {
     return(lambda)
 
 }#CHECK.RIDGE.PENALTY
+
+# check the generalized linear model family the model belongs to.
+check.family = function(family) {
+
+  if (missing(family) || is.null(family))
+    family = "gaussian"
+  else
+    check.label(family, available.families, "family")
+
+  return(family)
+
+}#CHECK.FAMILY

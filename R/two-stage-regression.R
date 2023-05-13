@@ -4,35 +4,20 @@ two.stage.regression = function(model, family, response, predictors, sensitive,
 
   # check the model to be fitted.
   check.label(model, fair.models, "model")
+  family = check.family(family)
   # check method-specific arguments (so that we check the family before using
   # it to check other stuff).
-  if (model == "nclm") {
-
+  if (model == "nclm")
     covfun = check.covariance.function(covfun)
-
-  }#THEN
-  else if (model == "frrm") {
-
-    check.label(definition, available.fairness.definitions,
-      "definition of fairness")
-    check.label(definition, fairness.definitions.for.model[["frrm"]],
-      "definition of fairness")
-
-  }#THEN
-  else if (model == "fgrrm") {
-
-    check.label(family, c("gaussian", "binomial"), "family")
-    check.label(definition, available.fairness.definitions,
-      "definition of fairness")
-    check.label(definition, fairness.definitions.for.model[["frrm"]],
-      "definition of fairness")
-
-  }#THEN
+  else if (model %in% c("frrm", "fgrrm"))
+    check.fairness.constraint(definition, model = model, family = family)
 
   # check the arguments common to all methods.
   response = check.response(response, model = model, family = family)
-  predictors = check.data(predictors, nobs = length(response), varletter = "X")
-  sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
+  predictors =
+    check.data(predictors, nobs = sample.size(response), varletter = "X")
+  sensitive =
+    check.data(sensitive, nobs = sample.size(response), varletter = "S")
   check.fairness.level(unfairness)
   check.logical(save.auxiliary)
   lambda = check.ridge.penalty(lambda)
@@ -80,12 +65,6 @@ two.stage.regression = function(model, family, response, predictors, sensitive,
               epsilon = unfairness, covfun = covfun, lambda = lambda)
 
     }#ELSE
-
-  }#THEN
-  else if (model == "frrm") {
-
-    fit = frrm.glmnet(y = response, S = sensitive, U = U,
-            unfairness = unfairness, definition = definition, lambda = lambda)
 
   }#THEN
   else if (model == "fgrrm") {

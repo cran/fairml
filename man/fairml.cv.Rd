@@ -31,7 +31,7 @@ cv.folds(x)
   \item{model}{a character string, the label of the model. Currently
     \code{"nclm"}, \code{"frrm"}, \code{"fgrrm"}, \code{"zlm"} and \code{"zlrm"}
     are available.}
-  \item{model.args}{additional arguments passed to the model.}
+  \item{model.args}{additional arguments passed to model estimation.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}, to
     process folds or subsamples in parallel.}
   \item{x}{an object of class \code{fair.kcv} or \code{fair.kcv.list}.}
@@ -103,30 +103,30 @@ cv.folds(x)
   cross-validation.
 
   \code{cv.folds()} returns a list containing the indexes of the observations in
-  each of the cross-validation folds. In the cakse of k-fold cross-validation,
+  each of the cross-validation folds. In the case of k-fold cross-validation,
   if \code{runs} is larger than \code{1}, each element of the list is itself a
   list with the indexes for the observations in each fold in each run.
 
 }
 \examples{
-kcv = fairml.cv(response = vur.test$y, predictors = vur.test$X,
-        sensitive = vur.test$S, unfairness = 0.10, model = "nclm",
+kcv = fairml.cv(response = vu.test$gaussian, predictors = vu.test$X,
+        sensitive = vu.test$S, unfairness = 0.10, model = "nclm",
         method = "k-fold", k = 10, runs = 10)
 kcv
 cv.loss(kcv)
 cv.unfairness(kcv)
 
 # run a second cross-validation with the same folds.
-fairml.cv(response = vur.test$y, predictors = vur.test$X,
-        sensitive = vur.test$S, unfairness = 0.10, model = "nclm",
+fairml.cv(response = vu.test$gaussian, predictors = vu.test$X,
+        sensitive = vu.test$S, unfairness = 0.10, model = "nclm",
         method = "custom-folds", folds = cv.folds(kcv))
 
 # run cross-validation in parallel.
 \dontrun{
 library(parallel)
 cl = makeCluster(2)
-fairml.cv(response = vur.test$y, predictors = vur.test$X,
-  sensitive = vur.test$S, unfairness = 0.10, model = "nclm",
+fairml.cv(response = vu.test$gaussian, predictors = vu.test$X,
+  sensitive = vu.test$S, unfairness = 0.10, model = "nclm",
   method = "k-fold", k = 10, runs = 10, cluster = cl)
 stopCluster(cl)
 }}

@@ -1,3 +1,20 @@
+fairml (0.8)
+
+  * support the following generalized linear model families in fgrrm():
+     Poisson (log-linear regression), Cox (proportional hazards regression)
+     and multinomial (multi-class logistic regression). Gaussian (linear 
+     regression) and binomial (logistic regression) families were already
+     supported in previous versions.
+  * the plot() moethods for "fair.model" objects now produces more diagnostic 
+     plots for all models and families.
+  * added the individual fairness from Berk et al. (2017) and Scutari, Panero 
+     and Proissl (2022) to frrm() and fgrrm().
+  * added more synthetic data sets for testing and prototyping.
+  * added zlm.orig() and zlrm.orig(), which implement Zafar et al. (2019)'s
+     fair regression and logistic regression models with the original
+     constraints on the covariances.
+  * support user-specified fairness definitions/functions.
+
 fairml (0.7)
 
   * fixed the computation of precision and recall in fairml.cv() (thanks

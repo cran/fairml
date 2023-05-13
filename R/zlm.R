@@ -2,6 +2,36 @@
 # fair linear regression adapted from Zafar et al. (2019).
 zlm = function(response, predictors, sensitive, unfairness) {
 
+  model = zlm.shared(response = response, predictors = predictors,
+            sensitive = sensitive, unfairness = unfairness,
+            type = "correlation")
+
+  # save the function call for the print() method.
+  model$main$call = match.call()
+
+  return(model)
+
+}#ZLM
+
+# fair linear regression from Zafar et al. (2019) with the original constraint.
+zlm.orig = function(response, predictors, sensitive, max.abs.cov) {
+
+  model = zlm.shared(response = response, predictors = predictors,
+            sensitive = sensitive, unfairness = max.abs.cov,
+            type = "covariance")
+
+  # save the function call for the print() method.
+  model$main$call = match.call()
+
+  return(model)
+
+}#ZLM.ORIG
+
+zlm.shared = function(response, predictors, sensitive, unfairness, type) {
+
+  # the optimization is implemented using CVXR.
+  check.and.load.package("CVXR")
+
   build.return.value  = function(model, coefs) {
 
     # if glm() fits the model just from the offsets, without estimating the
@@ -21,6 +51,7 @@ zlm = function(response, predictors, sensitive, unfairness) {
         coefficients = coefs,
         residuals = resid,
         fitted.values = as.vector(fitted(model)),
+        y = response,
         family = "gaussian",
         deviance = sum(resid^2),
         loglik = logLik(model)
@@ -37,15 +68,17 @@ zlm = function(response, predictors, sensitive, unfairness) {
 
   }#BUILD.RETURN.VALUE
 
-  # save the function call for the print() method.
-  call = match.call()
-
   # check the variables.
   response = check.response(response, model = "zlm")
-  predictors = check.data(predictors, nobs = length(response), varletter = "X")
-  sensitive = check.data(sensitive, nobs = length(response), varletter = "S")
+  predictors =
+    check.data(predictors, nobs = sample.size(response), varletter = "X")
+  sensitive =
+    check.data(sensitive, nobs = sample.size(response), varletter = "S")
   # check the fairness constraint.
-  check.fairness.level(unfairness)
+  if (type == "correlation")
+    check.fairness.level(unfairness)
+  else if (type == "covariance")
+    check.absolute.covariance(unfairness)
 
   # save some information on the data, to be used e.g. in predict().
   response.info = get.data.info(data.frame(response = response))
@@ -78,16 +111,26 @@ zlm = function(response, predictors, sensitive, unfairness) {
   # then fit an unconstrained linear regression, to check whether the
   # constraints are active.
   unconstrained.model = lm(response ~ predictors - 1)
-
   unconstrained.fitted = fitted(unconstrained.model)
-  correlations = cor(sensitive, unconstrained.fitted)
 
-  if (all(abs(correlations) < unfairness))
-    return(build.return.value(unconstrained.model))
+  if (type == "correlation") {
+
+    correlations = cor(sensitive, unconstrained.fitted)
+    if (all(abs(correlations) < unfairness))
+      return(build.return.value(unconstrained.model))
+
+  }#THEN
+  else if (type == "covariance") {
+
+    covariances = cov(sensitive, unconstrained.fitted)
+    if (all(abs(covariances) < unfairness))
+      return(build.return.value(unconstrained.model))
+
+  }#ELSE
 
   # perform the constrained optimization.
   coefs = constrained.linear(response = response, predictors = predictors,
-             sensitive = sensitive, unfairness = unfairness,
+             sensitive = sensitive, unfairness = unfairness, type = type,
              max.covariance = max(abs(cov(sensitive, unconstrained.fitted))))
 
   # sensitive attributes do not have coefficients in this model, they only
@@ -99,11 +142,11 @@ zlm = function(response, predictors, sensitive, unfairness) {
 
   return(build.return.value(final.model, coefs))
 
-}#ZLM
+}#ZLM.SHARED
 
 # CVXR wrapper to make the code simpler.
 constrained.linear = function(response, predictors, sensitive, unfairness,
-  max.covariance) {
+  type, max.covariance) {
 
   n = length(response)
 
@@ -118,23 +161,23 @@ constrained.linear = function(response, predictors, sensitive, unfairness,
   optimization = function(cov.bound) {
 
     # define the variables of the optimization problem.
-    coefs = Variable(rows = ncol(predictors), cols = 1)
+    coefs = CVXR::Variable(rows = ncol(predictors), cols = 1)
     # define the objective function, the sum of the squared residuals.
-    obj = sum_squares(response - predictors %*% coefs)
+    obj = CVXR::sum_squares(response - predictors %*% coefs)
     # define the constraints on the covariances between the sensitive attributes
     # and the fitted values.
     constraints = list(abs(xts %*% coefs) / (n - 1) <= cov.bound)
     # formulate the constrained optimization problem.
-    prob = Problem(Minimize(obj), constraints = constraints)
+    prob = CVXR::Problem(CVXR::Minimize(obj), constraints = constraints)
     # solve it.
-    result = solve(prob, ignore_dcp = TRUE)
+    result = CVXR::solve(prob, ignore_dcp = TRUE)
 
     if (result$status %in% c("optimal", "optimal_inaccurate"))
       return(result$getValue(coefs))
 
     # try #2: if the default solver fails, try again with a different one (which
     # is much slower but seems to fail less often).
-    result = solve(prob, solver = "SCS", ignore_dcp = TRUE)
+    result = CVXR::solve(prob, solver = "SCS", ignore_dcp = TRUE)
 
     if (result$status %in% c("optimal", "optimal_inaccurate"))
       return(result$getValue(coefs))
@@ -142,8 +185,8 @@ constrained.linear = function(response, predictors, sensitive, unfairness,
     # try #3: add some slack to the constraint to get a slightly-invalid
     # solution that still looks like a valid one.
     constraints = list(abs(xts %*% coefs) / (n - 1) <= cov.bound * 1.01)
-    prob = Problem(Minimize(obj), constraints = constraints)
-    result = solve(prob, ignore_dcp = TRUE)
+    prob = CVXR::Problem(CVXR::Minimize(obj), constraints = constraints)
+    result = CVXR::solve(prob, ignore_dcp = TRUE)
 
     if (!(result$status %in% c("optimal", "optimal_inaccurate")))
       stop("CVXR failed to find a solution (", result$status, ").")
@@ -166,14 +209,24 @@ constrained.linear = function(response, predictors, sensitive, unfairness,
 
   }#CONSTRAINT.MAPPING
 
-  # find the bound on the covariances that satisfies the bound on the
-  # correlations (that is, the unfairness) using the maximum covariance from
-  # the unconstrained model (+ some slack) to limit the search interval.
-  cor.bound = optimize(f = constraint.mapping,
-                interval = c(0, max.covariance * 1.1))$minimum
+  if (type == "correlation") {
 
-  # estimate and rename the regression coefficients,
-  coefs = structure(as.vector(optimization(cor.bound)),
+    # find the bound on the covariances that satisfies the bound on the
+    # correlations (that is, the unfairness) using the maximum covariance from
+    # the unconstrained model (+ some slack) to limit the search interval.
+    bound = optimize(f = constraint.mapping,
+              interval = c(0, max.covariance * 1.1))$minimum
+
+  }#THEN
+  else if (type == "covariance") {
+
+    # unfairness is already expressed with a bound on the covariances.
+    bound = unfairness
+
+  }#THEN
+
+  # estimate and rename the regression coefficients.
+  coefs = structure(as.vector(optimization(bound)),
             names = colnames(predictors))
 
   return(coefs)

@@ -44,6 +44,9 @@ data(communities.and.crime)
   \code{racepctblack} and \code{PctForeignBorn} are the sensitive attributes and
   the remaining variables are used as predictors.
 
+  The data contain too many variable to list them here: we refer the reader to
+  the documentation on the UCI Machine Learning Repository.
+
 }
 \references{
 

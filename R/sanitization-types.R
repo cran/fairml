@@ -14,6 +14,13 @@ is.non.negative = function(x) {
 
 }#IS.NON.NEGATIVE
 
+# is x a vector of non-negative numbers?
+is.non.negative.vector = function(x) {
+
+  is.numeric(x) && all(is.finite(x)) && all(x >= 0)
+
+}#IS.NON.NEGATIVE.VECTOR
+
 # is x a non-negative integer?
 is.non.negative.integer = function(x) {
 
@@ -59,6 +66,13 @@ is.probability.vector = function(x, zero = FALSE) {
     all(x <= 1) && (zero || any(x > 0))
 
 }#IS.PROBABILITY.VECTOR
+
+# is x a binary vector?
+is.binary.vector = function(x) {
+
+  is.numeric(x) && all(is.finite(x)) && all(x %in% c(0, 1))
+
+}#IS.BINARY.VECTOR
 
 # is x a single character string?
 is.string = function(x) {

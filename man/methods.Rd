@@ -35,7 +35,7 @@
 \method{print}{fair.model}(x, digits, ...)
 \method{summary}{fair.model}(object, ...)
 \method{all.equal}{fair.model}(target, current, ...)
-\method{plot}{fair.model}(x, diagonal = FALSE, regression = FALSE, ...)
+\method{plot}{fair.model}(x, support = FALSE, regression = FALSE, ncol = 2, ...)
 
 # predict() methods.
 \method{predict}{nclm}(object, new.predictors, new.sensitive, type = "response", ...)
@@ -61,10 +61,13 @@
     factor columns; the predictors for the new observations.}
   \item{new.sensitive}{a numeric matrix or a data frame containing numeric and
     factor columns; the sensitive attributes for the new observations.}
-  \item{diagonal}{a logical value, whether to draw the diagonal of the first
-    quadrant in \code{plot()}.}
+  \item{support}{a logical value, whether to draw support lines (diagonal of the
+    first quadrant, horizontal line at zero, etc.) in \code{plot()}.}
   \item{regression}{a logical value, whether to draw the regression line of the
     observed values on the fitted values from the model in \code{plot()}.}
+  \item{ncol}{a positive integer, the number of columns the plots will be
+    arranged into.}
   \item{\dots}{additional arguments, currently ignored.}
 }
+\author{Marco Scutari}
 \keyword{methods}

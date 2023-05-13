@@ -2,7 +2,10 @@
 nclm = function(response, predictors, sensitive, unfairness, covfun, lambda = 0,
          save.auxiliary = FALSE) {
 
-  fitted = two.stage.regression(model = "nclm", family = NULL,
+  # the optimization is implemented using cccp.
+  check.and.load.package("cccp")
+
+  fitted = two.stage.regression(model = "nclm", family = "gaussian",
              response = response, predictors = predictors, sensitive = sensitive,
              unfairness = unfairness, definition = "sp-komiyama",
              covfun = covfun, lambda = lambda, save.auxiliary = save.auxiliary)
@@ -42,15 +45,20 @@ nclm.zero.sensitive = function(y, S, U, covfun, lambda) {
 
   # linear optimization problem, quadratic constraints: call the optimizer.
   mycop = cop(f = objective.function)
-  res = solvecop(mycop, solver = "cccp", quiet = TRUE, maxiters = 50000L)
+  sol = solvecop(mycop, maxiters = 50000L)
 
   # validate the solution provided by the solver.
-  check = validate(mycop, res, quiet = TRUE)
+  check = validate(mycop, sol = sol)
+
+  if (check$valid == FALSE)
+    stop("failed to find an optimal solution for the constrained optimization.")
+  if (check$status != "optimal")
+    warning("found suboptimal solution, convergence possibly failed.")
 
   # compute relevant quantities for later use.
   # regression coefficients (that is, all parameters apart from gamma), scaled
   # back into their unstandardized form.
-  coefs = res$x * attr(ys, "scaled:scale") / attr(Us, "scaled:scale")
+  coefs = sol$x * attr(ys, "scaled:scale") / attr(Us, "scaled:scale")
   # add the intercept back.
   coefs = c("(Intercept)" = 0, coefs)
   coefs["(Intercept)"] =
@@ -76,10 +84,11 @@ nclm.zero.sensitive = function(y, S, U, covfun, lambda) {
                 coefficients = coefs,
                 residuals = resid,
                 fitted.values = fitted,
+                y = y,
                 r2.statistical.parity = r2.S / (r2.S + r2.U),
                 family = "gaussian",
                 deviance = sum(resid^2),
-                loglik = linear.model.loglikelihood(resid, length(coefs)),
+                loglik = lm.loglikelihood(resid),
                 arguments = list(
                   lambda = lambda,
                   covfun = covfun
@@ -139,7 +148,7 @@ nclm.optiSolve = function(y, S, U, epsilon, covfun, lambda) {
   qu = t(ys) %*% Us / nobs
   a1 = -2 * c(1/2, qs, qu)
   # create the first constraint .
-  first.constraint = quadcon(Q = Q1, a = a1, dir = "<=", val = 0, id = labels)
+  first.constraint = quadcon(Q = Q1, a = a1, val = 0, id = labels)
 
   # second constraint, quadratic term.
   Q2 = diag(0, 1 + nS + nU)
@@ -147,25 +156,25 @@ nclm.optiSolve = function(y, S, U, epsilon, covfun, lambda) {
   # second constraint, linear term (same as in the previous constraint).
   a2 = a1
   # create the second constraint.
-  second.constraint = quadcon(Q = Q2, a = a2, dir = "<=", val = 0, id = labels)
+  second.constraint = quadcon(Q = Q2, a = a2, val = 0, id = labels)
 
   # linear optimization problem, quadratic constraints: call the optimizer.
   mycop = cop(f = objective.function,
               qc = first.constraint, qc2 = second.constraint)
-  res = solvecop(mycop, solver = "cccp", quiet = TRUE, maxiters = 50000L)
+  sol = solvecop(mycop, maxiters = 50000L)
 
   # validate the solution provided by the solver.
-  check = validate(mycop, res, quiet = TRUE)
+  check = validate(mycop, sol = sol)
 
-  if (check$info$valid == FALSE)
+  if (check$valid == FALSE)
     stop("failed to find an optimal solution for the constrained optimization.")
-  if (check$info$status != "optimal")
+  if (check$status != "optimal")
     warning("found suboptimal solution, convergence possibly failed.")
 
   # compute relevant quantities for later use.
   # regression coefficients (that is, all parameters apart from gamma), scaled
   # back into their unstandardized form.
-  coefs = res$x[names(res$x) != "gamma"]
+  coefs = sol$x[names(sol$x) != "gamma"]
   coefs = coefs * attr(ys, "scaled:scale") /
             c(attr(Ss, "scaled:scale"), attr(Us, "scaled:scale"))
   # add the intercept back.
@@ -191,10 +200,11 @@ nclm.optiSolve = function(y, S, U, epsilon, covfun, lambda) {
                 coefficients = coefs,
                 residuals = resid,
                 fitted.values = fitted,
+                y = y,
                 r2.statistical.parity = r2.S / (r2.S + r2.U),
                 family = "gaussian",
                 deviance = sum(resid^2),
-                loglik = linear.model.loglikelihood(resid, length(coefs)),
+                loglik = lm.loglikelihood(resid),
                 arguments = list(
                   lambda = lambda,
                   covfun = covfun

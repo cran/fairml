@@ -46,8 +46,7 @@ summary.fair.model = function(object, ...) {
     )
 
   }#THEN
-  else if ((model %in% fair.classifiers) ||
-           (model %in% fair.family) && (object$main$family == "binomial")) {
+  else if ((model %in% fair.classifiers) || (model %in% fair.family)) {
 
     if ("lr" %in% argnames) {
 
@@ -71,18 +70,24 @@ summary.fair.model = function(object, ...) {
 
   }#ELSE
 
+  # use an ad-hoc label for custom functions, look it up for built-ins.
+  if (is.function(fair$definition))
+    fairness.label = "Custom fairness function"
+  else
+    fairness.label = fairness.definitions.labels[fair$definition]
+
   if (length(fair$value) == 1) {
 
     fair.summary = list(
       structure(c(fair$value, fair$bound),
-        names = c(fairness.definitions.labels[fair$definition], "with bound"))
+        names = c(fairness.label, "with bound"))
     )
 
   }#THEN
   else {
 
     fair.summary = structure(list(fair$value, fair$bound),
-        names = c(fairness.definitions.labels[fair$definition], "with bound")
+        names = c(fairness.label, "with bound")
     )
 
   }#ELSE
