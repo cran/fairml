@@ -62,3 +62,11 @@ models.for.plot  = list(
   "precision-recall" = c("zlrm", "fgrrm"),
   "rmse" = c("nclm", "frrm", "fgrrm", "zlm")
 )
+
+# types of confidence intervals and their optional arguments.
+available.confint = c("boot")
+
+confint.extra.args = list(
+  "boot" = c("response", "predictors", "sensitive", "R", "m")
+)
+

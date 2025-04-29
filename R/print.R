@@ -152,3 +152,14 @@ print.fair.kcv.list = function(x, ...) {
 
 }#PRINT.FAIR.KCV.LIST
 
+# print confidence intervals hiding all the metadata.
+print.fair.confint = function(x, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  print(noattr(x, ok = c("dim", "dimnames")))
+
+  invisible(x)
+
+}#PRINT.FAIR.CONFINT

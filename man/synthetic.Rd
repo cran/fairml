@@ -1,7 +1,7 @@
 \name{synthetic data sets}
 \docType{data}
 \alias{vu.test}
-\title{Synthetic data set to test fair models}
+\title{Synthetic Data Set to Test Fair Models}
 \description{
 
   Synthetic data set used as test cases in the \pkg{fairml} package.

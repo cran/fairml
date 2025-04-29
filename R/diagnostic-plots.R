@@ -153,3 +153,96 @@ plot.fair.model = function(x, support = FALSE, regression = FALSE, ncol = 2,
     gridExtra::grid.arrange(p1, p2, p3, p4, ncol = ncol)
 
 }#PLOT.FAIR.MODEL
+
+# plot confidence intervals using dot plots and bars.
+plot.fair.confint = function(x, support = FALSE, ...) {
+
+  # diagnostic plots are lattice plots.
+  check.and.load.package("lattice")
+  # check the arguments enabling the reference lines.
+  check.logical(support)
+
+  # this function does not really have additional arguments, the dots are there
+  # because they are in the method's deifnition.
+  check.unused.args(list(...), character(0))
+
+  values = attr(x, "value")
+  sensitive = attr(x, "sensitive")
+
+  if (is.matrix(values)) {
+
+    # organize the information in a data frame that can be used by lattice.
+    response = rep(colnames(values), each = nrow(values))
+    variables = rep(rownames(values), ncol(values))
+
+    data = data.frame(
+      value = as.numeric(values),
+      response = rep(colnames(values), each = nrow(values)),
+      variables = rep(rownames(values), ncol(values)),
+      sensitive = rep(sensitive, ncol(values)) + 1L,
+      lb = as.numeric(x[, 1, ]),
+      ub = as.numeric(x[, 2, ])
+    )
+
+    # reverse-order the variables so that they are displayed top-to-bottom.
+    data$variables = factor(data$variables, levels = rev(rownames(values)))
+    # ensure that all confidence intervals are in range, with some allowances.
+    range = max(abs(c(data$ub, data$lb, data$value)))
+
+    lattice::dotplot(variables ~ value | response, data = data,
+      as.table = TRUE, xlim = c(-range, range) * 1.15,
+      scales = list(x = list(relation = "free"), y = list(relation = "free")),
+      panel = function(x, y, subscripts, ...) {
+
+        # sensitive attributes are in red, predictors are in green.
+        colour = c("forestgreen", "tomato")[data$sensitive[subscripts]]
+
+        lattice::panel.abline(h = unique(y), col = "lightgray")
+        if (support)
+          lattice::panel.abline(v = 0, col = "lightgray")
+        lattice::panel.xyplot(x, y, pch = 15, col = colour)
+        lattice::panel.arrows(x0 = data$lb[subscripts],
+            x1 = data$ub[subscripts], y0 = as.numeric(y), y1 = as.numeric(y),
+            length = 0.04, angle = 90, code = 3, lend = 2,
+            lwd = 1.5, col = colour)
+      },
+      par.settings = list(strip.background = list(col = "transparent"),
+                          strip.border = list(col = "transparent"))
+      )
+
+  }#THEN
+  else {
+
+    data = data.frame(
+      value = as.numeric(values),
+      variables = names(values),
+      sensitive = sensitive + 1L,
+      lb = as.numeric(x[, 1]),
+      ub = as.numeric(x[, 2])
+    )
+
+    # reverse-order the variables so that they are displayed top-to-bottom.
+    data$variables = factor(data$variables, levels = rev(names(values)))
+    # ensure that all confidence intervals are in range, with some allowances.
+    range = max(abs(c(data$ub, data$lb, data$value)))
+
+    lattice::dotplot(variables ~ value, data = data,
+      as.table = TRUE, xlim = c(-range, range) * 1.15,
+      panel = function(x, y, subscripts, ...) {
+
+        # sensitive attributes are in red, predictors are in green.
+        colour = c("forestgreen", "tomato")[data$sensitive[subscripts]]
+
+        lattice::panel.abline(h = unique(y), col = "lightgray")
+        if (support)
+          lattice::panel.abline(v = 0, col = "lightgray")
+        lattice::panel.xyplot(x, y, pch = 15, col = colour)
+        lattice::panel.arrows(x0 = data$lb[subscripts],
+            x1 = data$ub[subscripts], y0 = as.numeric(y), y1 = as.numeric(y),
+            length = 0.04, angle = 90, code = 3, lend = 2,
+            lwd = 1.5, col = colour)
+      })
+
+  }#ELSE
+
+}#PLOT.FAIR.CONFINT

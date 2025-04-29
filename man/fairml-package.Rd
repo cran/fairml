@@ -2,7 +2,7 @@
 \alias{fairml-package}
 \alias{fairml}
 \docType{package}
-\title{Fair models in machine learning}
+\title{Fair Models in Machine Learning}
 \description{
 
   Fair machine learning models: estimation, tuning and prediction.

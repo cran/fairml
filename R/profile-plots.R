@@ -25,7 +25,7 @@ fairness.profile.plot = function(response, predictors, sensitive, unfairness,
   check.logical(legend)
   check.label(type, available.profile.plots, "type")
   # check whether the model can be plotted with this type of plot.
-  if (!(model %in% models.for.plot[[type]]))
+  if (model %!in% models.for.plot[[type]])
     stop("model ", q(model), " is not supported by profile plot ", q(type), ".")
 
   # check the cluster.
@@ -63,7 +63,7 @@ fairness.profile.plot = function(response, predictors, sensitive, unfairness,
 
     if (model %in% fair.family) {
 
-      if (!(family %in% c("binomial", "multinomial")))
+      if (family %!in% c("binomial", "multinomial"))
         stop("model ", q(model), " with family ", q(family),
              " is not supported by profile plot ", q(type), ".")
 

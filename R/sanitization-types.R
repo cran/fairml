@@ -81,6 +81,13 @@ is.string = function(x) {
 
 }#IS.STRING
 
+# is x a vector of character strings?
+is.string.vector = function(x) {
+
+  is.character(x) && !any(is.na(x)) && (length(x) == 0 || any(x != ""))
+
+}#IS.STRING.VECTOR
+
 # check logical flags.
 check.logical = function(bool) {
 

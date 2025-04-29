@@ -11,7 +11,7 @@ importFrom("methods", "is")
 importFrom("stats", "var", "sd", "cov", "cor", "coef", "residuals", "fitted",
   "sigma", "deviance", "nobs", "lm", "model.frame", "model.matrix", "formula",
   "predict", "weighted.mean", "optimize", "anova", "glm", "logLik", "dbinom",
-  "dnorm", "dpois")
+  "dnorm", "dpois", "quantile")
 importFrom("glmnet", "glmnet")
 importFrom("grDevices", "dev.cur")
 importFrom("graphics", "plot.new", "strwidth")
@@ -24,6 +24,7 @@ S3method(predict, "zlm")
 S3method(predict, "zlrm")
 
 S3method(print, "fair.model")
+S3method(plot, "fair.model")
 S3method(summary, "fair.model")
 S3method(all.equal, "fair.model")
 S3method(coef, "fair.model")
@@ -34,9 +35,12 @@ S3method(deviance, "fair.model")
 S3method(logLik, "fair.model")
 S3method(nobs, "fair.model")
 S3method(predict, "fair.model")
-S3method(plot, "fair.model")
+S3method(confint, "fair.model")
 
 S3method(print, "summary.fair.model")
 
 S3method(print, "fair.kcv")
 S3method(print, "fair.kcv.list")
+
+S3method(print, "fair.confint")
+S3method(plot, "fair.confint")

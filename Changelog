@@ -1,3 +1,9 @@
+fairml (0.9)
+
+  * cosmetic fixes to pass CRAN checks.
+  * added confint() with an associated plot() method to compute and display
+     confidence intervals.
+
 fairml (0.8)
 
   * support the following generalized linear model families in fgrrm():

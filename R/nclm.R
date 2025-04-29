@@ -12,6 +12,8 @@ nclm = function(response, predictors, sensitive, unfairness, covfun, lambda = 0,
 
   # save the function call for the print() method.
   fitted$main$call = match.call()
+  # save the environment of the function call for confint().
+  fitted$main$env = parent.frame()
 
   return(fitted)
 
@@ -78,7 +80,8 @@ nclm.zero.sensitive = function(y, S, U, covfun, lambda) {
   coefs = c(coefs["(Intercept)"], structure(rep(0, nS), names = colnames(S)),
             coefs[colnames(Us)])
   # mark coefficients corresponding to sensitive attributes.
-  attr(coefs, "sensitive") = names(coefs) %in% colnames(S)
+  attr(coefs, "sensitive") =
+    structure(names(coefs) %in% colnames(S), names = names(coefs))
 
   return(list(main = list(
                 coefficients = coefs,
@@ -184,7 +187,8 @@ nclm.optiSolve = function(y, S, U, epsilon, covfun, lambda) {
               attr(Ss, "scaled:center") %*% coefs[colnames(S)] -
               attr(Us, "scaled:center") %*% coefs[colnames(U)])
   # mark coefficients corresponding to sensitive attributes.
-  attr(coefs, "sensitive") = names(coefs) %in% colnames(S)
+  attr(coefs, "sensitive") =
+    structure(names(coefs) %in% colnames(S), names = names(coefs))
   # fitted values and residuals.
   fitted.U = U %*% coefs[colnames(U)]
   fitted.S = S %*% coefs[colnames(S)]

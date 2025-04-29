@@ -10,6 +10,8 @@ fgrrm = function(response, predictors, sensitive, unfairness,
 
   # save the function call for the print() method.
   fitted$main$call = match.call()
+  # save the environment of the function call for confint().
+  fitted$main$env = parent.frame()
 
   return(fitted)
 
@@ -48,6 +50,7 @@ fgrrm.glmnet = function(y, S, U, unfairness, definition, family = "binomial",
       sensitive = rownames(model$coefficients) %in% colnames(S)
     else
       sensitive = names(model$coefficients) %in% colnames(S)
+    names(sensitive) = names(model$coefficients)
 
     coefs = structure(model$coefficients, sensitive = sensitive)
 

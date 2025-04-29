@@ -2,28 +2,32 @@
 # fair linear regression adapted from Zafar et al. (2019).
 zlm = function(response, predictors, sensitive, unfairness) {
 
-  model = zlm.shared(response = response, predictors = predictors,
-            sensitive = sensitive, unfairness = unfairness,
-            type = "correlation")
+  fitted = zlm.shared(response = response, predictors = predictors,
+             sensitive = sensitive, unfairness = unfairness,
+             type = "correlation")
 
   # save the function call for the print() method.
-  model$main$call = match.call()
+  fitted$main$call = match.call()
+  # save the environment of the function call for confint().
+  fitted$main$env = parent.frame()
 
-  return(model)
+  return(fitted)
 
 }#ZLM
 
 # fair linear regression from Zafar et al. (2019) with the original constraint.
 zlm.orig = function(response, predictors, sensitive, max.abs.cov) {
 
-  model = zlm.shared(response = response, predictors = predictors,
-            sensitive = sensitive, unfairness = max.abs.cov,
-            type = "covariance")
+  fitted = zlm.shared(response = response, predictors = predictors,
+             sensitive = sensitive, unfairness = max.abs.cov,
+             type = "covariance")
 
   # save the function call for the print() method.
-  model$main$call = match.call()
+  fitted$main$call = match.call()
+  # save the environment of the function call for confint().
+  fitted$main$env = parent.frame()
 
-  return(model)
+  return(fitted)
 
 }#ZLM.ORIG
 
@@ -135,7 +139,8 @@ zlm.shared = function(response, predictors, sensitive, unfairness, type) {
 
   # sensitive attributes do not have coefficients in this model, they only
   # appear in the constraints.
-  attr(coefs, "sensitive") = rep(FALSE, length(coefs))
+  attr(coefs, "sensitive") =
+    structure(rep(FALSE, length(coefs)), names = names(coefs))
   # fit the logistic regression with the given coefficients, computing all the
   # quantities we are going to return in the process.
   final.model = lm(response ~ - 1, offset = predictors %*% coefs)
@@ -188,7 +193,7 @@ constrained.linear = function(response, predictors, sensitive, unfairness,
     prob = CVXR::Problem(CVXR::Minimize(obj), constraints = constraints)
     result = CVXR::solve(prob, ignore_dcp = TRUE)
 
-    if (!(result$status %in% c("optimal", "optimal_inaccurate")))
+    if (result$status %!in% c("optimal", "optimal_inaccurate"))
       stop("CVXR failed to find a solution (", result$status, ").")
 
     return(result$getValue(coefs))

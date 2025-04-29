@@ -40,6 +40,13 @@ noattr = function(x, ok) {
 
 }#NOATTR
 
+# negated inclusion operator.
+`%!in%` = function(x, table) {
+
+  match(x, table, nomatch = 0L) == 0L
+
+}#%!IN%
+
 # transform the linear predictor into a classification probability.
 linpred2prob = function(linear.predictor) {
 

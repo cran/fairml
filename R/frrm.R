@@ -9,6 +9,8 @@ frrm = function(response, predictors, sensitive, unfairness,
 
   # save the function call for the print() method.
   fitted$main$call = match.call()
+  # save the environment of the function call for confint().
+  fitted$main$env = parent.frame()
   # reset the main class to frrm.
   class(fitted)[1] = "frrm"
 

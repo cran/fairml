@@ -127,7 +127,7 @@ library(parallel)
 cl = makeCluster(2)
 fairml.cv(response = vu.test$gaussian, predictors = vu.test$X,
   sensitive = vu.test$S, unfairness = 0.10, model = "nclm",
-  method = "k-fold", k = 10, runs = 10, cluster = cl)
+  method = "k-fold", k = 5, runs = 5, cluster = cl)
 stopCluster(cl)
 }}
 \author{Marco Scutari}

@@ -20,7 +20,7 @@ check.unused.args = function(dots, used.args) {
   else
     args = dots
 
-  unused = !(args %in% used.args)
+  unused = (args %!in% used.args)
 
   if (any(unused))
     warning("unused argument(s):", paste0(" '", args[unused], "'"), ".")
@@ -46,3 +46,10 @@ check.label = function(arg, choices, argname) {
   stop("valid ", argname, "(s) are ", q(choices), ".")
 
 }#CHECK.LABEL
+
+# reverse lookup for optional arguments.
+has.argument = function(label, arg, lookup) {
+
+  arg %in% lookup[[label]]
+
+}#HAS.ARGUMENT

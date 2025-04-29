@@ -112,7 +112,7 @@ check.response = function(response, model, family, min.nobs = 2) {
 # check data in tabular form.
 check.data = function(data, nobs, min.nobs = 2, varletter) {
 
-  argname = as.character(match.call()[[2]])
+  argname = deparse(match.call()[[2]])
 
   if (missing(data))
     stop(q(argname), " is missing.")

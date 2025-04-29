@@ -94,8 +94,9 @@ r = bank[, "subscribed"]
 s = bank[, c("age")]
 p = bank[, setdiff(names(bank), c("subscribed", "age"))]
 
+\dontrun{
 m = zlrm(response = r, sensitive = s, predictors = p, unfairness = 0.05)
 summary(m)
-}
+}}
 \keyword{datasets}
 

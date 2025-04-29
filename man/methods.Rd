@@ -16,7 +16,7 @@
 \alias{predict.zlrm}
 \alias{predict.frrm}
 \alias{predict.fgrrm}
-\title{Extract information from fair.model objects}
+\title{Extract Information from fair.model Objects}
 \description{
 
   Extract various quantities of interest from an object of class
