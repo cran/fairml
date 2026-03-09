@@ -11,7 +11,7 @@ importFrom("methods", "is")
 importFrom("stats", "var", "sd", "cov", "cor", "coef", "residuals", "fitted",
   "sigma", "deviance", "nobs", "lm", "model.frame", "model.matrix", "formula",
   "predict", "weighted.mean", "optimize", "anova", "glm", "logLik", "dbinom",
-  "dnorm", "dpois", "quantile")
+  "dnorm", "dpois", "quantile", "qnorm")
 importFrom("glmnet", "glmnet")
 importFrom("grDevices", "dev.cur")
 importFrom("graphics", "plot.new", "strwidth")

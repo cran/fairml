@@ -1,7 +1,7 @@
-f2b9de9ca61e63748189007754fa9415 *Changelog
-4c0a65355c4b2f9e07ec51346081c425 *DESCRIPTION
+3ae6306965d44dad86ba738f542bec71 *Changelog
+624b93a0e50cca7df38dffe27ba996a1 *DESCRIPTION
 151c2b191d1962bb006e4e10523c67ea *LICENSE
-8936ef8e25984f586f2a5b876fc002ce *NAMESPACE
+c9cd885190254e03d4b6275c502e3404 *NAMESPACE
 937fbe5ab24a5eda9ce0ba5c8e9a9f90 *R/comparisons.R
 a4604d1b6b01a4982186746e96167190 *R/confidence-intervals.R
 162bced95ef9fdc296f3a127e50f1206 *R/crossvalidation.R
@@ -27,8 +27,8 @@ dc6d9312a3ca65b1e74e20670a4220f6 *R/sanitization-types.R
 259f85c7a805e353b8bffe403c804bc7 *R/summary.R
 c26066697170c400f7cc27b2db16126d *R/two-stage-regression.R
 0f02f5e46c22abd3c92efe47523fab0e *R/utils.R
-53c8a3602013ee4e18ff3f134da332b5 *R/zlm.R
-b887d311cb1a1e27eefc25b0de0c6107 *R/zlrm.R
+473c5d5b31cd15119f82c5f683f99863 *R/zlm.R
+3a1135a5dad8fc8e918beb0442025c02 *R/zlrm.R
 9eea426017ca71d215f91bbec8afffa6 *data/adult.rda
 dbf9c04037fdbf9674deee563a76492e *data/bank.rda
 30d861226f1ab31c511f4b6ae34f085b *data/communities.and.crime.rda

@@ -1,3 +1,7 @@
+fairml (0.9.1)
+
+  * use the new CVXR APIS.
+
 fairml (0.9)
 
   * cosmetic fixes to pass CRAN checks.

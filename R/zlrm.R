@@ -186,7 +186,7 @@ constrained.logistic = function(response, predictors, sensitive, unfairness,
   optimization = function(cov.bound) {
 
     # define the variables of the optimization problem.
-    coefs = CVXR::Variable(rows = ncol(predictors), cols = 1)
+    coefs = CVXR::Variable(c(ncol(predictors), 1))
     # define the objective function, the negated log-likelihood of logistic
     # regression.
     obj = -sum(CVXR::logistic(-predictors[yy == 0, ] %*% coefs)) -
@@ -197,28 +197,28 @@ constrained.logistic = function(response, predictors, sensitive, unfairness,
     # formulate the constrained optimization problem.
     prob = CVXR::Problem(CVXR::Maximize(obj), constraints = constraints)
     # solve it.
-    result = CVXR::solve(prob, ignore_dcp = TRUE)
+    result = CVXR::psolve(prob)
 
-    if (result$status %in% c("optimal", "optimal_inaccurate"))
-      return(result$getValue(coefs))
+    if (CVXR::status(prob) %in% c("optimal", "optimal_inaccurate"))
+      return(CVXR::value(coefs))
 
     # try #2: if the default solver fails, try again with a different one (which
     # is # much slower but seems to fail less often).
-    result = CVXR::solve(prob, solver = "SCS", ignore_dcp = TRUE)
+    result = CVXR::psolve(prob, solver = "SCS", ignore_dcp = TRUE)
 
-    if (result$status %in% c("optimal", "optimal_inaccurate"))
-      return(result$getValue(coefs))
+    if (CVXR::status(prob) %in% c("optimal", "optimal_inaccurate"))
+      return(CVXR::value(coefs))
 
     # try #3: add some slack to the constraint to get a slightly-invalid
     # solution that still looks like a valid one.
     constraints = list(abs(xts %*% coefs) / (n - 1) <= cov.bound * 1.01)
     prob = CVXR::Problem(CVXR::Minimize(obj), constraints = constraints)
-    result = CVXR::solve(prob, ignore_dcp = TRUE)
+    result = CVXR::psolve(prob, ignore_dcp = TRUE)
 
-    if (result$status %!in% c("optimal", "optimal_inaccurate"))
-      stop("CVXR failed to find a solution (", result$status, ").")
+    if (CVXR::status(prob) %!in% c("optimal", "optimal_inaccurate"))
+      stop("CVXR failed to find a solution (", CVXR::status(prob), ").")
 
-    return(result$getValue(coefs))
+    return(CVXR::value(coefs))
 
   }#OPTIMIZATION
 

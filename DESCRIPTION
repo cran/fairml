@@ -1,8 +1,8 @@
 Package: fairml
 Type: Package
 Title: Fair Models in Machine Learning
-Version: 0.9
-Date: 2025-04-29
+Version: 0.9.1
+Date: 2026-03-07
 Depends: R (>= 3.5.0)
 Imports: methods, glmnet
 Suggests: lattice, gridExtra, parallel, cccp, CVXR, survival
@@ -18,7 +18,7 @@ Description: Fair machine learning regression models which take sensitive attrib
 License: MIT + file LICENSE
 LazyData: yes
 NeedsCompilation: no
-Packaged: 2025-04-29 23:00:11 UTC; fizban
+Packaged: 2026-03-07 11:39:32 UTC; scutari
 Author: Marco Scutari [aut, cre]
 Repository: CRAN
-Date/Publication: 2025-04-29 23:30:12 UTC
+Date/Publication: 2026-03-09 08:50:02 UTC
